@@ -1,0 +1,12 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Teamwork}{}% 2
+\BOOKMARK [1][-]{section.3}{Specification of the language}{}% 3
+\BOOKMARK [2][-]{subsection.3.1}{Error identification}{section.3}% 4
+\BOOKMARK [3][-]{subsubsection.3.1.1}{Identification of syntax errors and EBNF }{subsection.3.1}% 5
+\BOOKMARK [3][-]{subsubsection.3.1.2}{Identification of semantic errors}{subsection.3.1}% 6
+\BOOKMARK [2][-]{subsection.3.2}{Error handling}{section.3}% 7
+\BOOKMARK [3][-]{subsubsection.3.2.1}{Syntax errors}{subsection.3.2}% 8
+\BOOKMARK [3][-]{subsubsection.3.2.2}{Semantic errors}{subsection.3.2}% 9
+\BOOKMARK [1][-]{section.4}{Example definition files}{}% 10
+\BOOKMARK [1][-]{section*.1}{Appendices}{}% 11
+\BOOKMARK [1][-]{Appendix.a.A}{Gantt chart}{}% 12

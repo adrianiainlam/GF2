@@ -1,0 +1,18 @@
+# full adder
+DEVICE
+    XOR xor1, xor2;
+    AND and1, and2;
+    OR  or1;
+    SWITCH a(0), b(0), cin(0);
+CONNECT
+    a -> xor1.I1, and2.I1;
+    b -> xor1.I2, and2.I2;
+    cin -> xor2.I2, and1.I1;
+    xor1 -> xor2.I1, and1.I2;
+
+    and1 -> or1.I1;
+    and2 -> or1.I2;
+MONITOR
+    xor2, # s
+    or1   # cout
+END 

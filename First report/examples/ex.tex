@@ -16,7 +16,13 @@ by circuit diagrams and by the language defined above.
   \label{fig:example1}
 \end{figure}
 
-\begin{figure}[htbp]
+% make p figure align to top of page, as per request by ff300
+\begingroup
+\makeatletter
+\setlength{\@fptop}{0pt}
+\setlength{\@fpbot}{0pt plus 1fil}
+\makeatother
+\begin{figure}[p]
   \begin{subfigure}{\textwidth}
     \centering
     \includegraphics[scale=.33]{examples/ripplecounter.png}
@@ -33,3 +39,4 @@ by circuit diagrams and by the language defined above.
   \label{fig:example2}
 \end{figure}
 \clearpage % outputs all floats
+\endgroup

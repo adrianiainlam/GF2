@@ -126,12 +126,14 @@
 	\lstset{aboveskip=\medskipamount}
 	
 	\section{Introduction}
-This report introduces the reader to the general approach to the logic simulator problem. In the first few sessions of the projects we described the EBNF syntax of our logic simulator and we identified the possible semantic errors that might arise, considering how these should be handled. Two examples of how some of the most common circuit designs are represented using definition files consistent with the defined syntax. The team {\huge \verb|<-| WHAT?}
+This report introduces the reader to the general approach taken in developing a logic simulation program. In starting the design stage of the project, we first decided on and described the EBNF syntax of our logic simulator. Then, we proceeded to identify the possible semantic errors that might arise, whilst also considering how they should be handled. To illustrate to the reader how the simulator might work, two examples of some of the most common circuit designs are represented using definition files consistent with the defined syntax. 
 
 \section{Teamwork}
-{\huge TODO}Shrin add here: add a brief description of how we decided to split the work between us and which tasks we are expecting to take more time than the others. Add brief comment to the gantt chart and refer to it in the appendix
 
-add comment on expected rework and margin of time kept in case something goes wrong
+It is important to note that time spent doing careful planning initially will pay off later in the form of reduced rework and cleaner code. Apart from planning how the software stack will be implemented, planning how we as a team should work is equally important.
+\\\\
+Together, we first decided on the list of tasks that the project would involve as well as considering how long each would take. As we are all of a similar programming ability, we split the tasks up between us so that each person roughly has the same workload. We expect the GUI, parsing and semantic analysis parts of the simulator program to take the most time to implement. Following this, we culminated the aforementioned information into the form of a Gantt chart for an easy to understand visual representation. This is displayed in the Appendix for clarity. As is shown, we plan to finish implementation and final testing by the 1st of June such that we have some leeway in the case of something going wrong. Note also that we plan for each module of the program to be tested by someone other than the person that wrote it. This is to prevent biased testing which should improve the robustness of our code. Lastly, we will be using Trello's online software as a Kanban board to manage our tasks more acutely. 
+
 
 \section{Specification of the language}
 \subsection{Error identification}
@@ -167,29 +169,30 @@ monitorlist="MONITOR", output, { "," , output};
 Considering the EBNF syntax design, further types of semantic errors can be identified:
 \begin{enumerate}
 	\tightlist
-	\item a set of capital letters given for \textit{devicetype} is not a valid recognised \textit{devicetype}
-	\item a device name is used more than once.
-	\item the device name corresponds to a keyword or to a device type (considered case insensitive)
-	\item a device is defined with parameters when the devicet type does not allow it (e.g.~XOR(5))
-	\item a device is defined with parameters out of the parameter range (e.g.~SWITCH(4))
-	\item multiple outputs going to the same input
-	\item an input is not mentioned in the connections
-	\item input index to a device must be less than or equal to the number of inputs initialised in DEFINE
-	\item input/output name in CONNECT does not match the possible inputs of the device type
-	\item in CONNECT and MONITOR, the \textit{devicename} has not been defined in DEFINE
-	\item the same signal is monitored twice
+	\item A set of capital letters given for \textit{devicetype} is not a valid recognised \textit{devicetype}
+	\item A device name is used more than once.
+	\item The device name corresponds to a keyword or to a device type (considered case insensitive)
+	\item A device is defined with parameters when the devicet type does not allow it (e.g.~XOR(5))
+	\item A device is defined with parameters out of the parameter range (e.g.~SWITCH(4))
+	\item Multiple outputs going to the same input
+	\item An input is not mentioned in the connections
+	\item Input index to a device must be less than or equal to the number of inputs initialised in DEFINE
+	\item Input/output name in CONNECT does not match the possible inputs of the device type
+	\item In CONNECT and MONITOR, the \textit{devicename} has not been defined in DEFINE
+	\item The same signal is monitored twice
 \end{enumerate}
 
 \subsection{Error handling}
-Our approach to error handling starts from the syntax errors. If a syntax error is found, it is output and the parsing is continued on the rest of the file starting from the next semicolumn checking for the remaining syntax errors. If no syntax errors are found, we move to semantic error checking.
+Our approach to error handling starts first with the syntax errors. If a syntax error is found, it is output and the parsing is continued on the rest of the file starting from the next semicolon checking for the remaining syntax errors. If no syntax errors are found, we move to semantic error checking which is described shortly.
 \subsubsection{Syntax errors}
-All the syntax error are approached similarly displaying “SYNTAX ERRORS” followed by the line number, the involved code and an arrow underneath indicating where in line syntax error has occurred. Example:
+All the syntax errors are approached similarly: displaying “SYNTAX ERROR” followed by the line number, the code involved, and an arrow underneath indicating where in the line the syntax error occurred. Example:
+
 \begin{lstlisting}
 SYNTAX ERROR   Line 42: SWITCH 5n2;
                                ^
 \end{lstlisting}
 \subsubsection{Semantic errors}
-Each type of semantic error is handled individually and, despite not being mentioned in the table, line number and the code generating the error will be included at beginning of the message. For the error number, refer to Section \ref{ident_sem_error}.
+Each type of semantic error is handled individually and, despite not being mentioned in the table, the line number and the code generating the error will be included at beginning of the message. For the error number, refer to Section \ref{ident_sem_error}.
 
 \begin{center}
 	\begin{tabular}{l l}
@@ -216,8 +219,13 @@ Each type of semantic error is handled individually and, despite not being menti
 \input{examples/ex.tex}
 
 \begin{appendices} \label{app}
-	\section{Gantt chart}
-	{\huge TODO}Shrin add here
+	\section{Gantt Chart}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=\linewidth]{gantt.png}
+	\end{figure}
+	
+
 \end{appendices}
 
 \end{document}

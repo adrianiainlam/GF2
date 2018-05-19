@@ -5,6 +5,7 @@ file and translate them into symbols that are usable by the parser.
 
 Classes
 -------
+Symbol - contains attributes of a symbol
 Scanner - reads definition file and translates characters into symbols.
 """
 
@@ -15,6 +16,17 @@ DEBUG = sys.stderr
 
 
 class Symbol():
+    """
+    Class for Symbol objects. Contains four public attributes.
+
+    symtype: Type of the symbol, takes values in Scanner.symbol_types
+    symid  : A numerical ID for the symbol; within each symtype the
+             ID acts as a unique identifier
+    linenum: The line number (0-indexed) at which the symbol is found
+    colnum : The column number (1-indexed) at which the symbol starts
+
+    The initialiser expects all four attributes to be present.
+    """
     def __init__(self, symtype, symid, linenum, colnum):
         self.symtype = symtype
         self.symid = symid
@@ -41,6 +53,21 @@ class Scanner:
     -------------
     get_symbol(self): Translates the next sequence of characters and
                       returns the symbol type and ID.
+
+    Public (mutable) attributes
+    ---------------------------
+    symbol_types: An Enum containing all valid symbol types.
+                  Currently the list of valid symbol types are:
+                    COMMA, DOT, SEMICOLON, CONNECTION_OP, KEYWORD,
+                    NUMBER, NAME, OPENPAREN, CLOSEPAREN, EOF
+    keywords: A list of keywords
+    comment_start,
+    comment_end: Single-character delimiters to mark the start and end
+                 of a comment. These are initialised to '#' and '\n'
+                 respectively.
+    filelines: A list of the lines read from the circuit file.
+               '\n' are not stripped from the lines.
+               Please DO NOT change the value of filelines.
     """
 
     def __init__(self, path, names):
@@ -54,54 +81,60 @@ class Scanner:
                   file=sys.stderr)
             sys.exit(1)
 
-        self.names = names
-        self.symbol_types = Enum(
+        self._names = names
+        self.symbol_types = Enum(  # changes need to be updated in docstring
             'symbol_types',
             'COMMA DOT SEMICOLON CONNECTION_OP KEYWORD NUMBER ' +
             'NAME OPENPAREN CLOSEPAREN EOF'
         )
         self.keywords = ['DEVICE', 'CONNECT', 'MONITOR', 'END']
 
-        keyids = self.names.lookup(self.keywords)
-        self.keywords_id = dict(zip(self.keywords, keyids))
+        ## Why is this necessary? IDs will be looked up in get_symbol()
+        ## anyway, and these keywords are not expected to be used
+        ## frequently enough for this to bring performance enhancements.
+        # keyids = self.names.lookup(self.keywords)
+        # self.keywords_id = dict(zip(self.keywords, keyids))
 
         self.comment_start = '#'
         self.comment_end = '\n'
 
-        self.current_char = ''
-        self.current_line = ''
-        self.current_line_num = 0
-        self.current_col_num = 0
+        self._current_char = ''
+        self._current_line = ''
+        self._current_line_num = 0
+        self._current_col_num = 0
 
-    def get_next_char(self):
-        current_line = self.filelines[self.current_line_num]
+    def _get_next_char(self):
+        if len(self.filelines) == 0: # empty file
+            return ''
 
-        if self.current_col_num >= len(current_line):  # end of line
+        current_line = self.filelines[self._current_line_num]
 
-            if self.current_line_num >= len(self.filelines) - 1:  # EOF
-                self.current_char = ''
+        if self._current_col_num >= len(current_line):  # end of line
+
+            if self._current_line_num >= len(self.filelines) - 1:  # EOF
+                self._current_char = ''
             else:
 
-                self.current_line_num += 1
-                self.current_col_num = 1
-                current_line = self.filelines[self.current_line_num]
-                self.current_char = current_line[0]
+                self._current_line_num += 1
+                self._current_col_num = 1
+                current_line = self.filelines[self._current_line_num]
+                self._current_char = current_line[0]
 
         else:
-            self.current_char = current_line[self.current_col_num]
-            self.current_col_num += 1
+            self._current_char = current_line[self._current_col_num]
+            self._current_col_num += 1
 
-    def skip_to_next_symbol(self):
-        isincomment = (self.current_char == self.comment_start)
+    def _skip_to_next_symbol(self):
+        isincomment = (self._current_char == self.comment_start)
 
-        while self.current_char.isspace() or isincomment:
-            self.get_next_char()
+        while self._current_char.isspace() or isincomment:
+            self._get_next_char()
             if isincomment:
-                if self.current_char == self.comment_end:
+                if self._current_char in [self.comment_end, '']:
                     isincomment = False
-                    self.get_next_char()
+                    self._get_next_char()
             else:
-                isincomment = (self.current_char == self.comment_start)
+                isincomment = (self._current_char == self.comment_start)
 
     def get_symbol(self):
         """Return the symbol type and ID of the next sequence of characters.
@@ -110,77 +143,96 @@ class Scanner:
         are assigned None. Note: this function is called again (recursively)
         if it encounters a comment or end of line.
         """
-        if self.current_line_num == 0 and self.current_col_num == 0:
+        if self._current_line_num == 0 and self._current_col_num == 0:
             # read the first char to start off
-            self.get_next_char()
+            self._get_next_char()
 
-        self.skip_to_next_symbol()
+        self._skip_to_next_symbol()
 
         sym = Symbol(
             symtype=None, symid=None,
-            linenum=self.current_line_num, colnum=self.current_col_num
+            linenum=self._current_line_num, colnum=self._current_col_num
         )
 
-        if self.current_char.isalpha():  # name
-            name_str = self.get_name()
+        if self._current_char.isalpha():  # name
+            name_str = self._get_name()
             print(name_str, file=DEBUG)
             if name_str in self.keywords:
                 sym.symtype = self.symbol_types.KEYWORD
             else:
                 sym.symtype = self.symbol_types.NAME
-            sym.symid = self.names.lookup([name_str])[0]
+            sym.symid = self._names.lookup([name_str])[0]
 
-        elif self.current_char.isdigit():  # number
-            sym.symid = self.get_number()
+        elif self._current_char.isdigit():  # number
+            sym.symid = self._get_number()
             sym.symtype = self.symbol_types.NUMBER
 
-        elif self.current_char == '-':  # connection operator ->
-            self.get_next_char()
-            if self.current_char == '>':
+        elif self._current_char == '-':  # connection operator ->
+            self._get_next_char()
+            if self._current_char == '>':
                 sym.symtype = self.symbol_types.CONNECTION_OP
-            self.get_next_char()
+            self._get_next_char()
 
-        elif self.current_char == ';':
+        elif self._current_char == ';':
             sym.symtype = self.symbol_types.SEMICOLON
-            self.get_next_char()
+            self._get_next_char()
 
-        elif self.current_char == ',':
+        elif self._current_char == ',':
             sym.symtype = self.symbol_types.COMMA
-            self.get_next_char()
+            self._get_next_char()
 
-        elif self.current_char == '.':
+        elif self._current_char == '.':
             sym.symtype = self.symbol_types.DOT
-            self.get_next_char()
+            self._get_next_char()
 
-        elif self.current_char == '(':
+        elif self._current_char == '(':
             sym.symtype = self.symbol_types.OPENPAREN
-            self.get_next_char()
+            self._get_next_char()
 
-        elif self.current_char == ')':
+        elif self._current_char == ')':
             sym.symtype = self.symbol_types.CLOSEPAREN
-            self.get_next_char()
+            self._get_next_char()
 
-        elif self.current_char == '':
+        elif self._current_char == '':
             sym.symtype = self.symbol_types.EOF
 
         else:
-            self.get_next_char()
+            self._get_next_char()
 
         print(sym.symtype, file=DEBUG)
         return sym
 
-    def get_name(self):
-        name = self.current_char
-        self.get_next_char()
-        while self.current_char.isalnum():
-            name += self.current_char
-            self.get_next_char()
+    def _get_name(self):
+        """
+        Assumes _current_char is a letter ([A-Za-z]), and returns
+        the next name in the file. "Name" is defined to be an
+        alphanumeric string starting with a letter.
+        If the assumption is invalid, a ValueError will be raised.
+        """
+        if not self._current_char.isalpha():
+            raise ValueError("_get_name() encounters _current_char which " +
+                             "is not a letter.")
+        name = self._current_char
+        self._get_next_char()
+        while self._current_char.isalnum():
+            name += self._current_char
+            self._get_next_char()
         return name
 
-    def get_number(self):
-        numstr = self.current_char
-        self.get_next_char()
-        while self.current_char.isdigit():
-            numstr += self.current_char
-            self.get_next_char()
+    def _get_number(self):
+        """
+        Assumes _current_char is a digit, and returns the next
+        non-negative integer in the file, i.e. it stops at the
+        next non-digit character.
+        If the assumption is invalid, a ValueError will be
+        raised.
+        """
+        if not self._current_char.isdigit():
+            raise ValueError("_get_number() encounters _current_char " +
+                             "which is not a digit.")
+        numstr = self._current_char
+        self._get_next_char()
+        while self._current_char.isdigit():
+            numstr += self._current_char
+            self._get_next_char()
         return int(numstr, base=10)

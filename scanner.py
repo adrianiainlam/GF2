@@ -59,7 +59,8 @@ class Scanner:
     symbol_types: An Enum containing all valid symbol types.
                   Currently the list of valid symbol types are:
                     COMMA, DOT, SEMICOLON, CONNECTION_OP, KEYWORD,
-                    NUMBER, NAME, OPENPAREN, CLOSEPAREN, EOF
+                    NUMBER, OPENPAREN, CLOSEPAREN, EOF,
+                    NAME_CAPS, NAME_CAPSNUM, NAME_ALNUM
     keywords: A list of keywords
     comment_start,
     comment_end: Single-character delimiters to mark the start and end
@@ -85,7 +86,8 @@ class Scanner:
         self.symbol_types = Enum(  # changes need to be updated in docstring
             'symbol_types',
             'COMMA DOT SEMICOLON CONNECTION_OP KEYWORD NUMBER ' +
-            'NAME OPENPAREN CLOSEPAREN EOF'
+            'OPENPAREN CLOSEPAREN EOF ' +
+            'NAME_CAPS NAME_CAPSNUM NAME_ALNUM'
         )
         self.keywords = ['DEVICE', 'CONNECT', 'MONITOR', 'END']
 
@@ -160,7 +162,13 @@ class Scanner:
             if name_str in self.keywords:
                 sym.symtype = self.symbol_types.KEYWORD
             else:
-                sym.symtype = self.symbol_types.NAME
+                if name_str.isupper():
+                    if name_str.isalpha():
+                        sym.symtype = self.symbol_types.NAME_CAPS
+                    else:
+                        sym.symtype = self.symbol_types.NAME_CAPSNUM
+                else:
+                    sym.symtype = self.symbol_types.NAME_ALNUM
             sym.symid = self._names.lookup([name_str])[0]
 
         elif self._current_char.isdigit():  # number

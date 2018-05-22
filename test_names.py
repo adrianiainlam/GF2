@@ -25,6 +25,14 @@ def test_filled_values(filled_names):
     assert filled_names.names == ["SW1", "SW2", "G1"]
 
 
+def test_unique_error_codes(filled_names):
+    assert list(filled_names.unique_error_codes(5)) == [3, 4, 5, 6, 7] #list() used to convert generator into a list
+
+def test_unique_error_codes_raises_exceptions(filled_names):
+    with pytest.raises(TypeError):
+        filled_names.unique_error_codes("5")
+
+
 @pytest.mark.parametrize("name_string_list, expected_name_ID_list", [
     (["SW1", "SW2", "G1"], [0,1,2])
 ])

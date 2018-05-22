@@ -231,79 +231,45 @@ class Gui(wx.Frame):
         # Canvas for drawing signals
         self.canvas = MyGLCanvas(self, devices, monitors)           #OUTPUT AND DRAW CANVAS
 
-        # # Configure the widgets                                     #INPUT BOXES AND TEXT
-        # self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")        #text string
-        # self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")              #number 
-        # self.run_button = wx.Button(self, wx.ID_ANY, "Run")         #button
-        # self.continue_button = wx.Button(self, wx.ID_ANY, "Continue")         #button
-        # self.text_box_text = wx.StaticText(self, wx.ID_ANY, "Add/Remove signal from monitor")        #text string
-        # self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",            #text
-        #                             style=wx.TE_PROCESS_ENTER)
-        # self.add_button = wx.Button(self, wx.ID_ANY, "Add")         #button
-        # self.remove_button = wx.Button(self, wx.ID_ANY, "Remove")         #button
-        # self.checkbox = wx.CheckBox(self, wx.ID_ANY, "Switch")
+        # Configure the widgets                                     #INPUT BOXES AND TEXT
+        self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")        #text string
+        self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")              #number 
+        self.run_button = wx.Button(self, wx.ID_ANY, "Run")         #button
+        self.continue_button = wx.Button(self, wx.ID_ANY, "Continue")         #button
+        self.text_box_text = wx.StaticText(self, wx.ID_ANY, "Add/Remove signal from monitor")        #text string
+        self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",            #text
+                                    style=wx.TE_PROCESS_ENTER)
+        self.add_button = wx.Button(self, wx.ID_ANY, "Add")         #button
+        self.remove_button = wx.Button(self, wx.ID_ANY, "Remove")         #button
+        self.checkbox = wx.CheckBox(self, wx.ID_ANY, "Switch")
     
-        # # Bind events to widgets                                    #RELATE ITEMS TO EVENTS
-        # self.Bind(wx.EVT_MENU, self.on_menu)
-        # self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
-        # self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
-        # self.continue_button.Bind(wx.EVT_BUTTON, self.on_continue_button)
-        # self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
-        # self.add_button.Bind(wx.EVT_BUTTON, self.on_run_button)
-        # self.remove_button.Bind(wx.EVT_BUTTON, self.on_run_button)
-        # self.checkbox.Bind(wx.EVT_CHECKBOX, self.on_checkbox)
+        # Bind events to widgets                                    #RELATE ITEMS TO EVENTS
+        self.Bind(wx.EVT_MENU, self.on_menu)
+        self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
+        self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
+        self.continue_button.Bind(wx.EVT_BUTTON, self.on_continue_button)
+        self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
+        self.add_button.Bind(wx.EVT_BUTTON, self.on_run_button)
+        self.remove_button.Bind(wx.EVT_BUTTON, self.on_run_button)
+        self.checkbox.Bind(wx.EVT_CHECKBOX, self.on_checkbox)
 
-        # # Configure sizers for layout
-        # main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        # side_sizer = wx.BoxSizer(wx.VERTICAL)
+        # Configure sizers for layout
+        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        side_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        # main_sizer.Add(self.canvas, 5, wx.EXPAND | wx.ALL, 5)
-        # main_sizer.Add(side_sizer, 1, wx.ALL, 5)
+        main_sizer.Add(self.canvas, 5, wx.EXPAND | wx.ALL, 5)
+        main_sizer.Add(side_sizer, 1, wx.ALL, 5)
 
-        # side_sizer.Add(self.text, 1, wx.TOP, 10)
-        # side_sizer.Add(self.spin, 1, wx.ALL, 5)
-        # side_sizer.Add(self.run_button, 1, wx.ALL, 5)
-        # side_sizer.Add(self.continue_button, 1, wx.ALL, 5)
-        # side_sizer.Add(self.text_box_text, 1, wx.TOP, 10)
-        # side_sizer.Add(self.text_box, 1, wx.ALL, 5)
-        # side_sizer.Add(self.checkbox, 1, wx.ALL, 5)
+        side_sizer.Add(self.text, 1, wx.TOP, 10)
+        side_sizer.Add(self.spin, 1, wx.ALL, 5)
+        side_sizer.Add(self.run_button, 1, wx.ALL, 5)
+        side_sizer.Add(self.continue_button, 1, wx.ALL, 5)
+        side_sizer.Add(self.text_box_text, 1, wx.TOP, 10)
+        side_sizer.Add(self.text_box, 1, wx.ALL, 5)
+        side_sizer.Add(self.checkbox, 1, wx.ALL, 5)
 
-        # self.SetSizeHints(600, 600)
-        # self.SetSizer(main_sizer)
-
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-        switches=['S1','S2','S3','S4','S4']
-        self.boxes=[]
-        checkbox_switches_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        for s in range(len(switches)):
-            self.checkbox = wx.CheckBox(self,label=switches[s], name=switches[s])
-            checkbox_switches_sizer.Add(self.checkbox, 0, wx.ALL, 5)
-            self.boxes.append(self.checkbox)
-            main_sizer.Add(checkbox_switches_sizer)
-        button = wx.Button(self,-1,"Retrieve Data")
-        main_sizer.Add(button)
-        self.Bind(wx.EVT_CHECKBOX, self.OnChecked)
-        self.Bind(wx.EVT_BUTTON, self.OnGetData)
+        self.SetSizeHints(600, 600)
         self.SetSizer(main_sizer)
-
-    def OnChecked(self,event):
-        clicked = event.GetEventObject()
-        print(clicked.GetName())
-        print(event.IsChecked()) 
-
-    def OnGetData(self,event):
-        day_dict = {}
-        day_list = []
-        for i in self.boxes:
-            if i.IsChecked():
-                n = i.GetName()
-                day_dict[n]="Checked"
-                day_list.append((n,"Checked"))
-        print(day_dict)
-        print(day_list)
-
-
-
 
     def on_menu(self, event):                                   
         """Handle the event when the user selects a menu item."""

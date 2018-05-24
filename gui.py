@@ -228,82 +228,104 @@ class Gui(wx.Frame):
         menuBar.Append(fileMenu, "&File")  
         self.SetMenuBar(menuBar)
 
-        # Canvas for drawing signals
-        self.canvas = MyGLCanvas(self, devices, monitors)           #OUTPUT AND DRAW CANVAS
+        #MY CODE FROM HERE ONWARDS
+        
+        self.text = wx.StaticText(self, wx.ID_ANY, "Nr of cycles")              #CREATION AND INIT OF UI ELEMENTS
+        self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")              
+        self.run_button = wx.Button(self, wx.ID_ANY, "Run")         
+        self.continue_button = wx.Button(self, wx.ID_ANY, "Continue") 
+        self.restart_button = wx.Button(self, wx.ID_ANY, "Restart")        
 
-        # # Configure the widgets                                     #INPUT BOXES AND TEXT
-        # self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")        #text string
-        # self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")              #number 
-        # self.run_button = wx.Button(self, wx.ID_ANY, "Run")         #button
-        # self.continue_button = wx.Button(self, wx.ID_ANY, "Continue")         #button
-        # self.text_box_text = wx.StaticText(self, wx.ID_ANY, "Add/Remove signal from monitor")        #text string
-        # self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",            #text
-        #                             style=wx.TE_PROCESS_ENTER)
-        # self.add_button = wx.Button(self, wx.ID_ANY, "Add")         #button
-        # self.remove_button = wx.Button(self, wx.ID_ANY, "Remove")         #button
-        # self.checkbox = wx.CheckBox(self, wx.ID_ANY, "Switch")
-    
-        # # Bind events to widgets                                    #RELATE ITEMS TO EVENTS
-        # self.Bind(wx.EVT_MENU, self.on_menu)
-        # self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
-        # self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
-        # self.continue_button.Bind(wx.EVT_BUTTON, self.on_continue_button)
-        # self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
-        # self.add_button.Bind(wx.EVT_BUTTON, self.on_run_button)
-        # self.remove_button.Bind(wx.EVT_BUTTON, self.on_run_button)
-        # self.checkbox.Bind(wx.EVT_CHECKBOX, self.on_checkbox)
+        self.continue_button.Disable()                                          #init of continue button                                  
 
-        # # Configure sizers for layout
-        # main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        # side_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.canvas = MyGLCanvas(self, devices, monitors)
 
-        # main_sizer.Add(self.canvas, 5, wx.EXPAND | wx.ALL, 5)
-        # main_sizer.Add(side_sizer, 1, wx.ALL, 5)
+        main_sizer = wx.BoxSizer(wx.HORIZONTAL)                                 #SIZERS
+        side_sizer = wx.BoxSizer(wx.VERTICAL)
+        monitors_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        switches_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        buttons_sizer=wx.BoxSizer(wx.HORIZONTAL)
+        
+        main_sizer.Add(self.canvas, 5, wx.EXPAND | wx.ALL, 5)                   #Assignement of sizer hierarchy and elements
+        main_sizer.Add(side_sizer, 1, wx.ALL, 5)
+        side_sizer.Add(self.text, 1, wx.TOP, 10)
+        side_sizer.Add(self.spin, 1, wx.ALL, 5)
+        side_sizer.Add(buttons_sizer)
+        buttons_sizer.Add(self.run_button, 1, wx.ALL, 5)
+        buttons_sizer.Add(self.continue_button, 1, wx.ALL, 5)
+        side_sizer.Add(self.restart_button, 1, wx.ALL, 5)
+        side_sizer.Add(monitors_sizer, 1, wx.ALL, 5)
+        side_sizer.Add(switches_sizer, 1, wx.ALL, 5)
 
-        # side_sizer.Add(self.text, 1, wx.TOP, 10)
-        # side_sizer.Add(self.spin, 1, wx.ALL, 5)
-        # side_sizer.Add(self.run_button, 1, wx.ALL, 5)
-        # side_sizer.Add(self.continue_button, 1, wx.ALL, 5)
-        # side_sizer.Add(self.text_box_text, 1, wx.TOP, 10)
-        # side_sizer.Add(self.text_box, 1, wx.ALL, 5)
-        # side_sizer.Add(self.checkbox, 1, wx.ALL, 5)
+        monitors_list=['O1','O2','O3','O4','O5','08']                           #MONITORS UI
+        self.monitors_boxes=[]
+        
+        for m in range(len(monitors_list)):                                     #Setup checkboxes for monitors
+            self.checkbox = wx.CheckBox(self,label=monitors_list[m], name=monitors_list[m])
+            monitors_sizer.Add(self.checkbox, 0, wx.ALL, 5)
+            self.monitors_boxes.append(self.checkbox)
+                                                                                #Setup checklistbox for monitors to be displayed
+        length_checklistbox=len(monitors_list)*21                               #estimate length of CheckListBox
+        width_checklistbox= max([len(i) for i in monitors_list])*9              #estimate width of CheckListBox
+        monitors_checklistbox=wx.CheckListBox(self, choices=monitors_list,size=wx.Size(min((120+width_checklistbox),300),min(length_checklistbox,250)))
+        side_sizer.Add(monitors_checklistbox)
 
-        # self.SetSizeHints(600, 600)
-        # self.SetSizer(main_sizer)
+# set the switches list of checkboxes as a grid so that the window does not keep expanding
+# add button to view or upload a new code or save
+# consider whether to add a save button to confirm the user that the new changes to nr or outputs shown and switches have been undated  
+# if a user add a monitor to the list of output monitors after some cycles have already been run, what is supposed to happen? showing the oputput fromt the start? If yes, we need to be able to to that from the logic part.
+        switches_list=['S1','S2','S3','S4']                                     #SWITCHES UI
+        self.switches_boxes=[]
+        
+        for s in range(len(switches_list)):                                     #Setup checkboxes for switches
+            self.checkbox = wx.CheckBox(self,label=switches_list[s], name=switches_list[s])
+            switches_sizer.Add(self.checkbox, 0, wx.ALL, 5)
+            self.switches_boxes.append(self.checkbox)
 
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-        switches=['S1','S2','S3','S4','S4']
-        self.boxes=[]
-        checkbox_switches_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        for s in range(len(switches)):
-            self.checkbox = wx.CheckBox(self,label=switches[s], name=switches[s])
-            checkbox_switches_sizer.Add(self.checkbox, 0, wx.ALL, 5)
-            self.boxes.append(self.checkbox)
-            main_sizer.Add(checkbox_switches_sizer)
         button = wx.Button(self,-1,"Retrieve Data")
-        main_sizer.Add(button)
-        self.Bind(wx.EVT_CHECKBOX, self.OnChecked)
+        side_sizer.Add(button)
+        
+        self.Bind(wx.EVT_CHECKBOX, self.OnChecked)                              #EVENTS HANDLING
+        self.Bind(wx.EVT_CHECKLISTBOX, self.OnChecklist)
         self.Bind(wx.EVT_BUTTON, self.OnGetData)
-        self.SetSizer(main_sizer)
+        self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
+        self.continue_button.Bind(wx.EVT_BUTTON, self.on_continue_button)
+        self.restart_button.Bind(wx.EVT_BUTTON, self.on_restart_button)
 
-    def OnChecked(self,event):
+        self.SetSizeHints(600, 600)
+        self.SetSizer(main_sizer)
+                                                                                #DEFINITION OF FUNCTIONS AND EVENTS
+    def OnChecked(self,event):          #this is probably not going to be useless in the final implementation
         clicked = event.GetEventObject()
         print(clicked.GetName())
         print(event.IsChecked()) 
 
-    def OnGetData(self,event):
-        day_dict = {}
-        day_list = []
-        for i in self.boxes:
+    def OnChecklist(self,event):          #this is probably going to be useless in the final implementation
+        clicked = event.GetEventObject()
+        index=event.GetInt()
+        print(index)
+        print(clicked.IsChecked(index)) 
+
+    def OnGetData(self,event):          #this will need to be put into the on run and on continue (or it must be called by them)
+        switches_dict = {}
+        switches_list = []
+        for i in self.monitors_boxes:
             if i.IsChecked():
                 n = i.GetName()
-                day_dict[n]="Checked"
-                day_list.append((n,"Checked"))
-        print(day_dict)
-        print(day_list)
+                switches_dict[n]="Checked"
+                switches_list.append((n,"Checked"))
+        monitors_dict = {}
+        monitors_list = []
+        for i in self.switches_boxes:
+            if i.IsChecked():
+                n = i.GetName()
+                monitors_dict[n]="Checked"
+                monitors_list.append((n,"Checked"))
 
-
-
+        print(switches_dict)
+        print(switches_list)
+        print(monitors_dict)
+        print(monitors_list)
 
     def on_menu(self, event):                                   
         """Handle the event when the user selects a menu item."""
@@ -323,11 +345,18 @@ class Gui(wx.Frame):
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""
         text = "Run button pressed."
+        self.continue_button.Enable()
         self.canvas.render(text)
     
     def on_continue_button(self, event):
         """Handle the event when the user clicks the continue button."""
         text = "Continue button pressed."
+        self.canvas.render(text)
+
+    def on_restart_button(self, event):
+        """Handle the event when the user clicks the restart button."""
+        text = "Restart button pressed."
+        self.continue_button.Disable()
         self.canvas.render(text)
     
     def on_text_box(self, event):

@@ -107,7 +107,7 @@ class Parser:
 
         self._current_sym = self._scanner.get_symbol()
         
-        while self._current_sym.symtype != sym_t.KEYWORD:
+        while self._current_sym.symtype not in [sym_t.KEYWORD, sym_t.EOF]:
             ret = ret and self._parse_device_def()
             self._current_sym = self._scanner.get_symbol()
 
@@ -133,8 +133,8 @@ class Parser:
         
         ret = ret and self._parse_device()
 
-        while self._current_sym.symtype == COMMA:
-            ret = self._parse_device()
+        while self._current_sym.symtype == COMMA and ret:
+            ret = ret and self._parse_device()
 
         if self._current_sym.symtype not in [COMMA, SEMICOLON]:
             # TODO Error expected comma or semicolon
@@ -178,9 +178,10 @@ class Parser:
         
         self._current_sym = self._scanner.get_symbol()
 
-        device_has_param = False
+        # BELOW: why did I define this? TODO remove if not needed
+        #device_has_param = False
         if self._current_sym.symtype == OPENPAREN:
-            device_has_param = True
+            #device_has_param = True
             # get number and closeparen
             self._current_sym = self._scanner.get_symbol()
             if self._current_sym.symtype != NUMBER:
@@ -192,7 +193,7 @@ class Parser:
                 return False
             self._current_sym = self._scanner.get_symbol()
                 
-        return True  ## comma/semicolon checked in device_def
+        return ret  ## comma/semicolon checked in device_def
 
 
     def _parse_device_name(self, getsym=True):
@@ -239,7 +240,7 @@ class Parser:
 
         self._current_sym = self._scanner.get_symbol()
         
-        while self._current_sym.symtype != KEYWORD:
+        while self._current_sym.symtype != KEYWORD and ret:
             ret = ret and self._parse_connection()
             self._current_sym = self._scanner.get_symbol()
 
@@ -336,7 +337,7 @@ class Parser:
         if self._current_sym.symtype not in [NAME_CAPSNUM, NAME_CAPS]:
             # error invalid input pin
             return False
-        return True
+        return ret
 
     def _parse_monitor_list(self):
         """

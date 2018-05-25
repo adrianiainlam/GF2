@@ -13,8 +13,6 @@ from names import Names
 from scanner import Symbol, Scanner
 
 
-# TODO check EOF checks everywhereh
-
 
 class Parser:
 
@@ -51,6 +49,13 @@ class Parser:
         self._syntax_err_cnt = 0  # TODO remember to update counter for
                                   # each error!
 
+        # Defining all error types now using names.unique_error_codes NEED TO UPDATE
+        #PARAMETER TO unique_error_codes IF CHANGING NUMBER OF ERROR TYPES
+        [self.NO_END, self.NO_EOF, self.NO_DEVICE, self.NOT_VALID_DEVICE_TYPE, self.NO_NAME,
+        self.NO_PARAMETER, self.NO_CLOSE_BRACKET, self.NO_PUNCTUATION, self.NO_CONNECT,
+        self.NOT_VALID_OUTPUT, self.NO_CONNECTION_OP, self.NO_DOT, self.NOT_VALID_INPUT,
+        self.NO_MONITOR, self.NO_SEMI_COLON] = self._names.unique_error_codes(15)
+
     def parse_network(self):
         """Parse the circuit definition file."""
         # For now just return True, so that userint and gui can run in the
@@ -60,7 +65,7 @@ class Parser:
         ret = True  # return value, True = no errors, False = error
 
         ret = ret and self._parse_device_list()
-        ret = ret and self._parse_connect_list()
+        ret = self._parse_connect_list() and ret
         ret = ret and self._parse_monitor_list()
 
         # _current_sym should then be "END" keyword
@@ -69,16 +74,18 @@ class Parser:
         if self._current_sym.symtype != KEYWORD or \
            self._current_sym.symid != self._names.lookup(["END"])[0]:
             # error: expected "END"
+            self.display_error(self.NO_END)
             return False
         else:
             # then we expect EOF
             self._current_sym = self._scanner.get_symbol()
             if self._current_sym.symtype != EOF:
+                self.display_error(self.NO_EOF)
                 return False
-            
+
         return ret
 
-    
+
     def _parse_device_list(self):
         """
         Parses the entire DEVICE list (DEVICE XOR x; AND a, b; ...)
@@ -95,8 +102,8 @@ class Parser:
 
         if self._current_sym.symtype != sym_t.KEYWORD or \
            self._current_sym.symid != lookup(["DEVICE"])[0]:
-            # TODO produce error stating Keyword "DEVICE" not found at start
-            # of file.
+            # error stating Keyword "DEVICE" not found at start
+            self.display_error(self.NO_DEVICE)
             # TODO then proceed to find the next keyword, terminating
             # if EOF reached.
             #   if DEVICE found, restart from here.
@@ -106,7 +113,7 @@ class Parser:
             return False  # TODO designate error codes
 
         self._current_sym = self._scanner.get_symbol()
-        
+
         while self._current_sym.symtype not in [sym_t.KEYWORD, sym_t.EOF]:
             ret = ret and self._parse_device_def()
             self._current_sym = self._scanner.get_symbol()
@@ -128,9 +135,9 @@ class Parser:
         SEMICOLON = self._scanner.symbol_types.SEMICOLON
 
         ret = True
-        
+
         ret = ret and self._parse_device_type()
-        
+
         ret = ret and self._parse_device()
 
         while self._current_sym.symtype == COMMA and ret:
@@ -138,12 +145,12 @@ class Parser:
 
         if self._current_sym.symtype not in [COMMA, SEMICOLON]:
             # TODO Error expected comma or semicolon
-            # skip to next semicolon
+            self.display_error(self.NO_PUNCTUATION)
             return False
         # if this part reached then current_sym must be SEMICOLON,
         # hence we terminate
         return ret
-            
+
     def _parse_device_type(self):
         """
         Parses the device type within a device definition.
@@ -154,8 +161,8 @@ class Parser:
         """
         NAME_CAPS = self._scanner.symbol_types.NAME_CAPS
         if self._current_sym.symtype != NAME_CAPS:
-            # TODO error
             # expected DeviceType (all-caps identifier)
+            self.display_error(self.NOT_VALID_DEVICE_TYPE)
             return False
         return True
 
@@ -175,7 +182,7 @@ class Parser:
         ret = True
 
         ret = ret and self._parse_device_name()
-        
+
         self._current_sym = self._scanner.get_symbol()
 
         # BELOW: why did I define this? TODO remove if not needed
@@ -186,13 +193,15 @@ class Parser:
             self._current_sym = self._scanner.get_symbol()
             if self._current_sym.symtype != NUMBER:
                 # ERROR
+                self.display_error(self.NO_PARAMETER)
                 return False
             self._current_sym = self._scanner.get_symbol()
             if self._current_sym.symtype != CLOSEPAREN:
                 # Error
+                self.display_error(self.NO_CLOSE_BRACKET)
                 return False
             self._current_sym = self._scanner.get_symbol()
-                
+
         return ret  ## comma/semicolon checked in device_def
 
 
@@ -200,7 +209,7 @@ class Parser:
         """
         Parses the name of a device.'
 
-        Will get its own initial symbol iff getsym == True.
+        Will get its own initial symbol if getsym == True.
         Will NOT update current_sym.
         """
         NAME_CAPS = self._scanner.symbol_types.NAME_CAPS
@@ -215,6 +224,7 @@ class Parser:
         if self._current_sym.symtype not in NAME_ANY:
             # ERROR
             # expected device name
+            self.display_error(self.NO_NAME)
             # skip to next comma or semicolon
             return False
         return True
@@ -231,15 +241,16 @@ class Parser:
 
         KEYWORD = self._scanner.symbol_types.KEYWORD
         EOF = self._scanner.symbol_types.EOF
-        
+
         if self._current_sym.symtype != KEYWORD or \
            self._current_sym.symid != self._names.lookup(["CONNECT"])[0]:
             # error
+            self.display_error(self.NO_CONNECT)
             # recovery: see _parse_device_list
             return False
 
         self._current_sym = self._scanner.get_symbol()
-        
+
         while self._current_sym.symtype != KEYWORD and ret:
             ret = ret and self._parse_connection()
             self._current_sym = self._scanner.get_symbol()
@@ -263,20 +274,22 @@ class Parser:
         CONNECTION_OP = self._scanner.symbol_types.CONNECTION_OP
         if self._current_sym.symtype != CONNECTION_OP:
             # error
+            self.display_error(self.NO_CONNECTION_OP)
             return False
 
         ret = ret and self._parse_input()
 
         COMMA = self._scanner.symbol_types.COMMA
         SEMICOLON = self._scanner.symbol_types.SEMICOLON
-        
+
         self._current_sym = self._scanner.get_symbol()
         while self._current_sym.symtype == COMMA:
             ret = ret and self._parse_input()
             self._current_sym = self._scanner.get_symbol()
-        
+
         if self._current_sym.symtype != SEMICOLON:
             # error
+            self.display_error(self.NO_SEMI_COLON)
             return False
         return ret
 
@@ -300,13 +313,14 @@ class Parser:
         DOT = self._scanner.symbol_types.DOT
         SEMICOLON = self._scanner.symbol_types.SEMICOLON
         NAME_CAPS = self._scanner.symbol_types.NAME_CAPS
-        
+
         if self._current_sym.symtype == DOT:
             # next symbol should then be output pin
             self._current_sym = self._scanner.get_symbol()
             if self._current_sym.symtype != NAME_CAPS:
                 # Error
                 # output pin is not all capital letters
+                self.display_error(self.NOT_VALID_OUTPUT)
                 return False
 
             self._current_sym = self._scanner.get_symbol()
@@ -321,7 +335,7 @@ class Parser:
         Will update current_sym with next symbol.
         """
         ret = True
-        
+
         ret = ret and self._parse_device_name()
 
         self._current_sym = self._scanner.get_symbol()
@@ -329,13 +343,15 @@ class Parser:
         DOT = self._scanner.symbol_types.DOT
         NAME_CAPSNUM = self._scanner.symbol_types.NAME_CAPSNUM
         NAME_CAPS = self._scanner.symbol_types.NAME_CAPS
-        
+
         if self._current_sym.symtype != DOT:
             # error
+            self.display_error(self.NO_DOT)
             return False
         self._current_sym = self._scanner.get_symbol()
         if self._current_sym.symtype not in [NAME_CAPSNUM, NAME_CAPS]:
             # error invalid input pin
+            self.display_error(self.NOT_VALID_INPUT)
             return False
         return ret
 
@@ -351,10 +367,11 @@ class Parser:
         KEYWORD = self._scanner.symbol_types.KEYWORD
         EOF = self._scanner.symbol_types.EOF
         COMMA = self._scanner.symbol_types.COMMA
-        
+
         if self._current_sym.symtype != KEYWORD or \
            self._current_sym.symid != self._names.lookup(["MONITOR"])[0]:
             # error
+            self.display_error(self.NO_MONITOR)
             # recovery: see _parse_device_list()
             return False
 
@@ -370,3 +387,48 @@ class Parser:
             return False
         return ret
 
+    def display_error(self, error_type):
+        self._syntax_err_cnt += 1
+        self.boilerplate_error()
+        if error_type == self.NO_DEVICE:
+            print("KeywordError: missing keyword: DEVICE")
+        elif error_type == self.NO_END:
+            print("KeywordError: missing keyword: END")
+        elif error_type == self.NO_MONITOR:
+            print("KeywordError: missing keyword: MONITOR")
+        elif error_type == self.NO_CONNECT:
+            print("KeywordError: missing keyword: CONNECT")
+        elif error_type == self.NO_EOF:
+            print("FileError: Expected definition file to end here")
+        elif error_type == self.NOT_VALID_DEVICE_TYPE:
+            print("DeviceError: Not a valid device type")
+        elif error_type == self.NO_NAME:
+            print("DeviceError: Missing device name")
+        elif error_type == self.NO_PARAMETER:
+            print("DeviceError: Missing input parameter specified")
+        elif error_type == self.NO_CLOSE_BRACKET:
+            print("DeviceError: Missing closing parentheses")
+        elif error_type == self.NO_PUNCTUATION:
+            print("FileError: Missing comma or semi-colon")
+        elif error_type == self.NOT_VALID_OUTPUT:
+            print("ConnectionError: Not a valid device output")
+        elif error_type == self.NOT_VALID_INPUT:
+            print("ConnectionError: Not a valid device input")
+        elif error_type == self.NO_CONNECTION_OP:
+            print("ConnectionError: Missing connection operator \"->\" ")
+        elif error_type == self.NO_DOT:
+            print("ConnectionError: Missing input operator \".\" ")
+        elif error_type == self.NO_SEMI_COLON:
+            print("FileError: Missing semi-colon to separate connections")
+
+
+
+
+
+
+    def boilerplate_error(self):
+        path = self._scanner.path
+        std_string = "File \"{}\", line {}"
+        print("Traceback:", std_string.format(path, self._current_sym.linenum))
+        print('\t', self._scanner.filelines[self._current_sym.linenum], end='')
+        print('\t', ' '*(self._current_sym.colnum -1)+ '^')

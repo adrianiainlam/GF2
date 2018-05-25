@@ -12,8 +12,6 @@ Scanner - reads definition file and translates characters into symbols.
 from enum import Enum
 import sys
 
-DEBUG = sys.stderr
-
 
 class Symbol():
     """
@@ -104,6 +102,7 @@ class Scanner:
         self._current_line = ''
         self._current_line_num = 0
         self._current_col_num = 0
+        self.path = path
 
     def _get_next_char(self):
         if len(self.filelines) == 0: # empty file
@@ -158,7 +157,6 @@ class Scanner:
 
         if self._current_char.isalpha():  # name
             name_str = self._get_name()
-            print(name_str, file=DEBUG)
             if name_str in self.keywords:
                 sym.symtype = self.symbol_types.KEYWORD
             else:
@@ -207,7 +205,6 @@ class Scanner:
         else:
             self._get_next_char()
 
-        print(sym.symtype, file=DEBUG)
         return sym
 
     def _get_name(self):

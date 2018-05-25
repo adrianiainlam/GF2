@@ -412,3 +412,12 @@ class Gui(wx.Frame):
         checkbox_value = self.checkbox.GetValue()
         text = "".join(["New checkbox value: ", str(checkbox_value)])
         self.canvas.render(text)
+
+    def open_circuit_file_in_editor(self, event):
+        """
+        We set a flag to indicate to logsim that the GUI is to be restarted.
+        Then we close the interface and allow logsim to start an editor.
+        Afterwards, logsim would restart the GUI.
+        """
+        self.edit_restart = True
+        self.Close()

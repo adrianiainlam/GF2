@@ -44,13 +44,13 @@ def main(arg_list):
 
     # Initialise instances of the four inner simulator classes
     names = Names()
-    # devices = Devices(names)
-    # network = Network(names, devices)
-    # monitors = Monitors(names, devices, network)
+    devices = Devices(names)
+    network = Network(names, devices)
+    monitors = Monitors(names, devices, network)
     # names = None
-    devices = None
-    network = None
-    monitors = None
+    #devices = None
+    #network = None
+    #monitors = None
 
     for option, path in options:
         if option == "-h":  # print the usage message
@@ -74,13 +74,35 @@ def main(arg_list):
         [path] = arguments
         scanner = Scanner(path, names)
         parser = Parser(names, devices, network, monitors, scanner)
-        if True: # parser.parse_network():
+        if parser.parse_network():
             # Initialise an instance of the gui.Gui() class
             app = wx.App()
             gui = Gui("Logic Simulator", path, names, devices, network,
                       monitors)
             gui.Show(True)
             app.MainLoop()
+
+            while hasattr(gui, 'edit_restart'):
+                # GUI terminated and set the edit_restart flag.
+                # We open the file in an editor to allow the user
+                # to change the file, then restart the GUI.
+                del app
+                import subprocess
+                subprocess.run(["editor", path])
+
+                # Re-initialise scanning and parsing
+                scanner = Scanner(path, names)
+                parser = Parser(names, devices, network, monitors, scanner)
+                if parser.parse_network():
+                    app = wx.App()
+                    gui = Gui("Logic Simulator", path, names, devices,
+                              network, monitors)
+                    gui.Show(True)
+                    app.MainLoop()
+                else:
+                    # Parser error messages would be enough, no need to
+                    # re-inform users of parser failure.
+                    break
 
 
 if __name__ == "__main__":

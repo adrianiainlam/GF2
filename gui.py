@@ -230,11 +230,12 @@ class Gui(wx.Frame):
 
         #MY CODE FROM HERE ONWARDS
         
-        self.text = wx.StaticText(self, wx.ID_ANY, "Nr of cycles")              #CREATION AND INIT OF UI ELEMENTS
+        self.cycles_text = wx.StaticText(self, wx.ID_ANY, "Nr of cycles")              #CREATION AND INIT OF UI ELEMENTS
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")              
         self.run_button = wx.Button(self, wx.ID_ANY, "Run")         
         self.continue_button = wx.Button(self, wx.ID_ANY, "Continue") 
         self.restart_button = wx.Button(self, wx.ID_ANY, "Restart")        
+        self.switches_text = wx.StaticText(self, wx.ID_ANY, "Switches (closed is ticked)")  
 
         self.continue_button.Disable()                                          #init of continue button                                  
 
@@ -242,38 +243,34 @@ class Gui(wx.Frame):
 
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)                                 #SIZERS
         side_sizer = wx.BoxSizer(wx.VERTICAL)
-        monitors_sizer = wx.BoxSizer(wx.HORIZONTAL)
         switches_sizer = wx.BoxSizer(wx.HORIZONTAL)
         buttons_sizer=wx.BoxSizer(wx.HORIZONTAL)
         
         main_sizer.Add(self.canvas, 5, wx.EXPAND | wx.ALL, 5)                   #Assignement of sizer hierarchy and elements
         main_sizer.Add(side_sizer, 1, wx.ALL, 5)
-        side_sizer.Add(self.text, 1, wx.TOP, 10)
+        side_sizer.Add(self.cycles_text, 1, wx.TOP, 10)
         side_sizer.Add(self.spin, 1, wx.ALL, 5)
         side_sizer.Add(buttons_sizer)
         buttons_sizer.Add(self.run_button, 1, wx.ALL, 5)
         buttons_sizer.Add(self.continue_button, 1, wx.ALL, 5)
         side_sizer.Add(self.restart_button, 1, wx.ALL, 5)
-        side_sizer.Add(monitors_sizer, 1, wx.ALL, 5)
+        side_sizer.Add(self.switches_text)
         side_sizer.Add(switches_sizer, 1, wx.ALL, 5)
 
         monitors_list=['O1','O2','O3','O4','O5','08']                           #MONITORS UI
-        self.monitors_boxes=[]
-        
-        for m in range(len(monitors_list)):                                     #Setup checkboxes for monitors
-            self.checkbox = wx.CheckBox(self,label=monitors_list[m], name=monitors_list[m])
-            monitors_sizer.Add(self.checkbox, 0, wx.ALL, 5)
-            self.monitors_boxes.append(self.checkbox)
-                                                                                #Setup checklistbox for monitors to be displayed
+
         length_checklistbox=len(monitors_list)*21                               #estimate length of CheckListBox
         width_checklistbox= max([len(i) for i in monitors_list])*9              #estimate width of CheckListBox
-        monitors_checklistbox=wx.CheckListBox(self, choices=monitors_list,size=wx.Size(min((120+width_checklistbox),300),min(length_checklistbox,250)))
-        side_sizer.Add(monitors_checklistbox)
+        self.monitors_checklistbox=wx.CheckListBox(self, choices=monitors_list,size=wx.Size(min((120+width_checklistbox),300),min(length_checklistbox,250)))
+        side_sizer.Add(self.monitors_checklistbox)
+        self.monitors_checklistbox.Enable()
 
 # set the switches list of checkboxes as a grid so that the window does not keep expanding
 # add button to view or upload a new code or save
 # consider whether to add a save button to confirm the user that the new changes to nr or outputs shown and switches have been undated  
 # if a user add a monitor to the list of output monitors after some cycles have already been run, what is supposed to happen? showing the oputput fromt the start? If yes, we need to be able to to that from the logic part.
+
+
         switches_list=['S1','S2','S3','S4']                                     #SWITCHES UI
         self.switches_boxes=[]
         
@@ -282,8 +279,8 @@ class Gui(wx.Frame):
             switches_sizer.Add(self.checkbox, 0, wx.ALL, 5)
             self.switches_boxes.append(self.checkbox)
 
-        button = wx.Button(self,-1,"Retrieve Data")
-        side_sizer.Add(button)
+        retrieve_button = wx.Button(self,-1,"Retrieve Data")
+        side_sizer.Add(retrieve_button,1,wx.TOP, 5)
         
         self.Bind(wx.EVT_CHECKBOX, self.OnChecked)                              #EVENTS HANDLING
         self.Bind(wx.EVT_CHECKLISTBOX, self.OnChecklist)
@@ -309,16 +306,14 @@ class Gui(wx.Frame):
     def OnGetData(self,event):          #this will need to be put into the on run and on continue (or it must be called by them)
         switches_dict = {}
         switches_list = []
-        for i in self.monitors_boxes:
+        for i in self.switches_boxes:
             if i.IsChecked():
                 n = i.GetName()
                 switches_dict[n]="Checked"
                 switches_list.append((n,"Checked"))
         monitors_dict = {}
         monitors_list = []
-        for i in self.switches_boxes:
-            if i.IsChecked():
-                n = i.GetName()
+        for n in self.monitors_checklistbox.GetCheckedStrings():    #or GetCheckedItems retirns index of the choices vector that is checked
                 monitors_dict[n]="Checked"
                 monitors_list.append((n,"Checked"))
 
@@ -346,16 +341,19 @@ class Gui(wx.Frame):
         """Handle the event when the user clicks the run button."""
         text = "Run button pressed."
         self.continue_button.Enable()
+        self.monitors_checklistbox.Disable()
         self.canvas.render(text)
     
     def on_continue_button(self, event):
         """Handle the event when the user clicks the continue button."""
         text = "Continue button pressed."
+        self.monitors_checklistbox.Disable()
         self.canvas.render(text)
 
     def on_restart_button(self, event):
         """Handle the event when the user clicks the restart button."""
         text = "Restart button pressed."
+        self.monitors_checklistbox.Enable()
         self.continue_button.Disable()
         self.canvas.render(text)
     

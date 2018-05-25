@@ -261,26 +261,30 @@ class Gui(wx.Frame):
 
         monitors_list=[]
         n=len(self.monitored_monitors_id_list)
-        for i in range(n):
+        for i in range(n):                                                    #create list of names of monitors and showed/not showed on display
             monitor=self.monitored_monitors_id_list[i]
             device_name=names.get_name_string(monitor[0])
             port_name=names.get_name_string(monitor[1])
-            monitors_list.append([device_name+"."+port_name,1])            #1 for monitored 
+            monitors_list.append([device_name+"."+port_name,True])                          #True for monitored 
         for i in range(n,n+len(self.non_monitored_monitors_id_list)):
             monitor=self.non_monitored_monitors_id_list[i]
             device_name=names.get_name_string(monitor[0])
             port_name=names.get_name_string(monitor[1])
-            monitors_list.append([device_name+"."+port_name,0])            #0 as it is not monitored
+            monitors_list.append([device_name+"."+port_name,False])                         #False as it is not monitored
 
         monitors_list=sorted(monitors_list)
-
-        length_checklistbox=len(monitors_list)*21                               #estimate length of CheckListBox
-        width_checklistbox= max([len(i) for i in monitors_list])*9+120          #estimate width of CheckListBox
+                                                                                #create monitor checklistbox
+        length_checklistbox=len(monitors_list)*21                                           #estimate length of CheckListBox
+        width_checklistbox= max([len(i) for i in monitors_list])*9+120                      #estimate width of CheckListBox
         size_checklistbox=wx.Size(min((width_checklistbox),300),min(length_checklistbox,250))
         choices_list=[x for [x,y] in monitors_list]
         self.monitors_checklistbox=wx.CheckListBox(self,choices=choices_list,size=size_checklistbox)
         side_sizer.Add(self.monitors_checklistbox)
         self.monitors_checklistbox.Enable()
+
+        for i in range(len(monitors_list)):                                   #initialise checked boxes
+            if monitors_list[i][1]:
+                self.monitors_checklistbox.SetCheckedStrings(monitors_list[i][0])
 
 # set the switches list of checkboxes as a grid so that the window does not keep expanding
 # add button to view or upload a new code or save
@@ -290,13 +294,14 @@ class Gui(wx.Frame):
         for i in range(len(switches_id_list)):
             switch=self.switches_id_list[i]
             switch_state=devices.get_device(switch).switch_state
-            switches_list.append(switch,0 if switch_state==device.LOW else 1)
+            switches_list.append(switch,False if switch_state==device.LOW else True)
         self.switches_boxes=[]
 
         switches_list=sorted(switches_list)
         choices_list=[x for [x,y] in switches_list]
         for s in range(len(switches_list)):                                     #Setup checkboxes for switches
             self.checkbox = wx.CheckBox(self,label=choices_list[s], name=choices_list[s])
+            self.checkbox.SetValue(switches_list[s][1])
             switches_sizer.Add(self.checkbox, 0, wx.ALL, 5)
             self.switches_boxes.append(self.checkbox)
 

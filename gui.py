@@ -257,25 +257,46 @@ class Gui(wx.Frame):
         side_sizer.Add(self.switches_text)
         side_sizer.Add(switches_sizer, 1, wx.ALL, 5)
 
-        monitors_list=['O1','O2','O3','O4','O5','08']                           #MONITORS UI
+        [self.monitored_monitors_id_list,self.non_monitored_monitors_id_list]=monitors.get_signal_names()                           #MONITORS UI
+
+        monitors_list=[]
+        n=len(self.monitored_monitors_id_list)
+        for i in range(n):
+            monitor=self.monitored_monitors_id_list[i]
+            device_name=names.get_name_string(monitor[0])
+            port_name=names.get_name_string(monitor[1])
+            monitors_list.append([device_name+"."+port_name,1])            #1 for monitored 
+        for i in range(n,n+len(self.non_monitored_monitors_id_list)):
+            monitor=self.non_monitored_monitors_id_list[i]
+            device_name=names.get_name_string(monitor[0])
+            port_name=names.get_name_string(monitor[1])
+            monitors_list.append([device_name+"."+port_name,0])            #0 as it is not monitored
+
+        monitors_list=sorted(monitors_list)
 
         length_checklistbox=len(monitors_list)*21                               #estimate length of CheckListBox
-        width_checklistbox= max([len(i) for i in monitors_list])*9              #estimate width of CheckListBox
-        self.monitors_checklistbox=wx.CheckListBox(self, choices=monitors_list,size=wx.Size(min((120+width_checklistbox),300),min(length_checklistbox,250)))
+        width_checklistbox= max([len(i) for i in monitors_list])*9+120          #estimate width of CheckListBox
+        size_checklistbox=wx.Size(min((width_checklistbox),300),min(length_checklistbox,250))
+        choices_list=[x for [x,y] in monitors_list]
+        self.monitors_checklistbox=wx.CheckListBox(self,choices=choices_list,size=size_checklistbox)
         side_sizer.Add(self.monitors_checklistbox)
         self.monitors_checklistbox.Enable()
 
 # set the switches list of checkboxes as a grid so that the window does not keep expanding
 # add button to view or upload a new code or save
-# consider whether to add a save button to confirm the user that the new changes to nr or outputs shown and switches have been undated  
-# if a user add a monitor to the list of output monitors after some cycles have already been run, what is supposed to happen? showing the oputput fromt the start? If yes, we need to be able to to that from the logic part.
 
-
-        switches_list=['S1','S2','S3','S4']                                     #SWITCHES UI
+        self.switches_id_list=[x for x in devices.devices_list if x.device_kind==devices.SWITCH]                                     #SWITCHES UI
+        self.switches_list=[]
+        for i in range(len(switches_id_list)):
+            switch=self.switches_id_list[i]
+            switch_state=devices.get_device(switch).switch_state
+            switches_list.append(switch,0 if switch_state==device.LOW else 1)
         self.switches_boxes=[]
-        
+
+        switches_list=sorted(switches_list)
+        choices_list=[x for [x,y] in switches_list]
         for s in range(len(switches_list)):                                     #Setup checkboxes for switches
-            self.checkbox = wx.CheckBox(self,label=switches_list[s], name=switches_list[s])
+            self.checkbox = wx.CheckBox(self,label=choices_list[s], name=choices_list[s])
             switches_sizer.Add(self.checkbox, 0, wx.ALL, 5)
             self.switches_boxes.append(self.checkbox)
 
@@ -295,13 +316,31 @@ class Gui(wx.Frame):
     def OnChecked(self,event):          #this is probably not going to be useless in the final implementation
         clicked = event.GetEventObject()
         print(clicked.GetName())
-        print(event.IsChecked()) 
+        print(event.IsChecked()*1) 
+        # switch_id = clicked.GetName()
+        #     switch_state = (event.IsChecked()*1) 
+        #             if self.devices.set_switch(switch_id, switch_state):
+        #                 print("Successfully set switch.")
+        #             else:
+        #                 print("Error! Invalid switch.")
+
 
     def OnChecklist(self,event):          #this is probably going to be useless in the final implementation
         clicked = event.GetEventObject()
-        index=event.GetInt()
-        print(index)
-        print(clicked.IsChecked(index)) 
+        device_string=event.GetString()
+        print(device)
+        print(clicked.IsChecked(index)*1) 
+
+        [device port]=device_string.split(".")
+        device_id = self.names.query(device)
+        port_id = self.names.query(port)
+
+        monitor_error = self.monitors.make_monitor(device, port,
+                                                    self.cycles_completed)
+        if monitor_error == self.monitors.NO_ERROR:
+            print("Successfully made monitor.")
+        else:
+            print("Error! Could not make monitor.")
 
     def OnGetData(self,event):          #this will need to be put into the on run and on continue (or it must be called by them)
         switches_dict = {}

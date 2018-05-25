@@ -220,6 +220,11 @@ class Gui(wx.Frame):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title, size=(800, 600))
 
+        self.monitors=monitors                      #making devices, names and network global varibales
+        self.devices=devices
+        self.names=names
+        self.cycles_completed=0
+
         # Configure the file menu
         fileMenu = wx.Menu()
         menuBar = wx.MenuBar()
@@ -243,7 +248,7 @@ class Gui(wx.Frame):
 
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)                                 #SIZERS
         side_sizer = wx.BoxSizer(wx.VERTICAL)
-        switches_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        switches_sizer = wx.BoxSizer(wx.VERTICAL)
         buttons_sizer=wx.BoxSizer(wx.HORIZONTAL)
         
         main_sizer.Add(self.canvas, 5, wx.EXPAND | wx.ALL, 5)                   #Assignement of sizer hierarchy and elements
@@ -257,28 +262,29 @@ class Gui(wx.Frame):
         side_sizer.Add(self.switches_text)
         side_sizer.Add(switches_sizer, 1, wx.ALL, 5)
 
-        [self.monitored_monitors_id_list,self.non_monitored_monitors_id_list]=monitors.get_signal_names()                           #MONITORS UI
+        [monitored_id_list,non_monitored_id_list]=monitors.get_signal_names()                           #MONITORS UI
 
         monitors_list=[]
-        n=len(self.monitored_monitors_id_list)
-        for i in range(n):                                                    #create list of names of monitors and showed/not showed on display
-            monitor=self.monitored_monitors_id_list[i]
-            device_name=names.get_name_string(monitor[0])
-            port_name=names.get_name_string(monitor[1])
+        nr_mon=len(monitored_id_list)
+        nr_non_mon=len(non_monitored_id_list)
+        for i in range(nr_mon):                                                    #create list of names of monitors and showed/not showed on display from IDs
+            monitor=monitored_id_list[i]
+            device_name=self.names.get_name_string(monitor[0])
+            port_name=self.names.get_name_string(monitor[1])
             monitors_list.append([device_name+"."+port_name,True])                          #True for monitored 
-        for i in range(n,n+len(self.non_monitored_monitors_id_list)):
-            monitor=self.non_monitored_monitors_id_list[i]
-            device_name=names.get_name_string(monitor[0])
-            port_name=names.get_name_string(monitor[1])
+        for i in range(nr_mon,nr_mon+nr_non_mon):
+            monitor=non_monitored_id_list[i]
+            device_name=self.names.get_name_string(monitor[0])
+            port_name=self.names.get_name_string(monitor[1])
             monitors_list.append([device_name+"."+port_name,False])                         #False as it is not monitored
 
         monitors_list=sorted(monitors_list)
                                                                                 #create monitor checklistbox
         length_checklistbox=len(monitors_list)*21                                           #estimate length of CheckListBox
-        width_checklistbox= max([len(i) for i in monitors_list])*9+120                      #estimate width of CheckListBox
+        width_checklistbox= max([len(i) for i in monitors_list])*9+120          #                    #estimate width of CheckListBox
         size_checklistbox=wx.Size(min((width_checklistbox),300),min(length_checklistbox,250))
         choices_list=[x for [x,y] in monitors_list]
-        self.monitors_checklistbox=wx.CheckListBox(self,choices=choices_list,size=size_checklistbox)
+        monitors_checklistbox=wx.CheckListBox(self,choices=choices_list,size=size_checklistbox)
         side_sizer.Add(self.monitors_checklistbox)
         self.monitors_checklistbox.Enable()
 
@@ -286,26 +292,31 @@ class Gui(wx.Frame):
             if monitors_list[i][1]:
                 self.monitors_checklistbox.SetCheckedStrings(monitors_list[i][0])
 
-# set the switches list of checkboxes as a grid so that the window does not keep expanding
-# add button to view or upload a new code or save
 
-        self.switches_id_list=[x for x in devices.devices_list if x.device_kind==devices.SWITCH]                                     #SWITCHES UI
-        self.switches_list=[]
+        switches_id_list=[x for x in self.devices.devices_list if x.device_kind==devices.SWITCH]                                     #SWITCHES UI
+        switches_list=[]
         for i in range(len(switches_id_list)):
-            switch=self.switches_id_list[i]
-            switch_state=devices.get_device(switch).switch_state
-            switches_list.append(switch,False if switch_state==device.LOW else True)
-        self.switches_boxes=[]
+            switch=switches_id_list[i]
+            switch_state=self.devices.get_device(switch).switch_state
+            self.switches_list.append(switch,False if switch_state==devices.LOW else True)
 
         switches_list=sorted(switches_list)
         choices_list=[x for [x,y] in switches_list]
-        for s in range(len(switches_list)):                                     #Setup checkboxes for switches
+        column_number=0
+        column_range=6
+        row_sizer = wx.BoxSizer(wx.HORIZONTAL) 
+        for s in range(len(switches_list)):                                #Setup checkboxes for switches
+            column_number=column_number+1
             self.checkbox = wx.CheckBox(self,label=choices_list[s], name=choices_list[s])
             self.checkbox.SetValue(switches_list[s][1])
-            switches_sizer.Add(self.checkbox, 0, wx.ALL, 5)
-            self.switches_boxes.append(self.checkbox)
+            row_sizer.Add(self.checkbox, 0, wx.ALL, 5)
+            if (column_number==column_range and s!=(len(switches_list)-1)):
+                column_number=0
+                switches_sizer.Add(row_sizer)
+                row_sizer=wx.BoxSizer(wx.HORIZONTAL) 
+        switches_sizer.Add(row_sizer)
 
-        retrieve_button = wx.Button(self,-1,"Retrieve Data")
+        retrieve_button = wx.Button(self,-1,"Open definition file")
         side_sizer.Add(retrieve_button,1,wx.TOP, 5)
         
         self.Bind(wx.EVT_CHECKBOX, self.OnChecked)                              #EVENTS HANDLING
@@ -314,40 +325,136 @@ class Gui(wx.Frame):
         self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
         self.continue_button.Bind(wx.EVT_BUTTON, self.on_continue_button)
         self.restart_button.Bind(wx.EVT_BUTTON, self.on_restart_button)
+        self.retrieve_button.Bind(wx.EVT_BUTTON, self.open_circuit_file_in_editor)
 
         self.SetSizeHints(600, 600)
         self.SetSizer(main_sizer)
-                                                                                #DEFINITION OF FUNCTIONS AND EVENTS
-    def OnChecked(self,event):          #this is probably not going to be useless in the final implementation
+                                                                     #DEFINITION OF FUNCTIONS AND EVENTS
+    def OnChecked(self,event):        
         clicked = event.GetEventObject()
-        print(clicked.GetName())
-        print(event.IsChecked()*1) 
-        # switch_id = clicked.GetName()
-        #     switch_state = (event.IsChecked()*1) 
-        #             if self.devices.set_switch(switch_id, switch_state):
-        #                 print("Successfully set switch.")
-        #             else:
-        #                 print("Error! Invalid switch.")
+        # print(clicked.GetName())
+        # print(event.IsChecked()*1) 
+        switch_name = clicked.GetName()
+        switch_id=self.names.query(switch_name)
+        switch_state = (self.devices.LOW if event.IsChecked()==False else self.devices.HIGH) 
+        if self.devices.set_switch(switch_id,switch_state):
+            print("Successfully set switch.")
+        else:
+            print("Error! Invalid switch.")
 
 
     def OnChecklist(self,event):          #this is probably going to be useless in the final implementation
         clicked = event.GetEventObject()
         device_string=event.GetString()
-        print(device)
-        print(clicked.IsChecked(index)*1) 
-
-        [device port]=device_string.split(".")
+        # print(device)
+        # print(clicked.IsChecked(index)*1) 
+        [device,port]=device_string.split(".")
         device_id = self.names.query(device)
         port_id = self.names.query(port)
 
-        monitor_error = self.monitors.make_monitor(device, port,
-                                                    self.cycles_completed)
-        if monitor_error == self.monitors.NO_ERROR:
-            print("Successfully made monitor.")
+        if (clicked.IsChecked(index)):
+            monitor_error = self.monitors.make_monitor(device_id, port_id, self.cycles_completed)
+            if monitor_error == self.monitors.NO_ERROR:
+                print("Successfully made monitor.")
+            else:
+                print("Error! Could not make monitor.")
         else:
-            print("Error! Could not make monitor.")
+            if self.monitors.remove_monitor(device_id, port_id):
+                print("Successfully zapped monitor")
+            else:
+                print("Error! Could not zap monitor.")
+                
+# what do I do with this then? It is currently in not any event handler
+    def on_menu(self, event):                                   
+        """Handle the event when the user selects a menu item."""
+        Id = event.GetId()
+        if Id == wx.ID_EXIT:
+            self.Close(True)
+        if Id == wx.ID_ABOUT:
+            wx.MessageBox("Logic Simulator\nCreated by S. Arulselvan, F. Freddi, A. I. Lam\n2018",
+                          "About Logsim", wx.ICON_INFORMATION | wx.OK)
 
-    def OnGetData(self,event):          #this will need to be put into the on run and on continue (or it must be called by them)
+    def run_network(self, cycles):            # used for on_run_button and on_continue_button
+        """Run the network for the specified number of simulation cycles.
+
+        Return True if successful.
+        """
+        for _ in range(cycles):
+            if self.network.execute_network():
+                self.monitors.record_signals()
+            else:
+                print("Error! Network oscillating.")
+                return False
+        self.monitors.display_signals()
+        return True
+
+    def on_run_button(self, event):
+        """Handle the event when the user clicks the run button."""
+        text = "Run button pressed."
+ 
+        self.cycles_completed = 0
+        cycles = self.spin.GetValue()
+        if cycles is not None:
+            self.continue_button.Enable()                       # handling interactions
+            self.monitors_checklistbox.Disable() 
+        
+            self.monitors.reset_monitors()                    # if the number of cycles provided is valid
+            print("".join(["Running for ", str(cycles), " cycles"]))
+            self.devices.cold_startup()
+            if self.run_network(cycles):
+                self.cycles_completed += cycles
+
+        self.canvas.render(text)
+    
+    def on_continue_button(self, event):
+        """Handle the event when the user clicks the continue button."""
+        text = "Continue button pressed."
+        self.monitors_checklistbox.Disable()
+
+        cycles = self.spin.GetValue()
+        if cycles is not None:  
+            if self.run_network(cycles):
+                self.cycles_completed += cycles
+                print(" ".join(["Continuing for", str(cycles), "cycles.",
+                                "Total:", str(self.cycles_completed)]))
+
+        self.canvas.render(text)
+
+    def on_restart_button(self, event):
+        """Handle the event when the user clicks the restart button."""
+        text = "Restart button pressed."
+
+        self.monitors_checklistbox.Enable()
+        self.continue_button.Disable()
+
+        self.monitors.reset_monitors()
+        self.cycles_completed=0
+        self.spin.SetValue(10)
+
+        self.canvas.render(text)
+
+    def open_circuit_file_in_editor(self, event):
+        """
+        We set a flag to indicate to logsim that the GUI is to be restarted.
+        Then we close the interface and allow logsim to start an editor.
+        Afterwards, logsim would restart the GUI.
+        """
+        self.edit_restart = True
+        self.Close()
+
+
+
+
+
+
+# TESTING ONLY
+    def on_text_box(self, event):
+        """Handle the event when the user enters text."""
+        text_box_value = self.text_box.GetValue()
+        text = "".join(["New text box value: ", text_box_value])
+        self.canvas.render(text)
+
+    def OnGetData(self,event):          # used for TESTING but will not be used in final version
         switches_dict = {}
         switches_list = []
         for i in self.switches_boxes:
@@ -366,45 +473,10 @@ class Gui(wx.Frame):
         print(monitors_dict)
         print(monitors_list)
 
-    def on_menu(self, event):                                   
-        """Handle the event when the user selects a menu item."""
-        Id = event.GetId()
-        if Id == wx.ID_EXIT:
-            self.Close(True)
-        if Id == wx.ID_ABOUT:
-            wx.MessageBox("Logic Simulator\nCreated by S. Arulselvan, F. Freddi, A. I. Lam\n2018",
-                          "About Logsim", wx.ICON_INFORMATION | wx.OK)
-
-    def on_spin(self, event):
+    def on_spin(self, event):                              # used for TESTING but not in final version of code
         """Handle the event when the user changes the spin control value."""
         spin_value = self.spin.GetValue()
         text = "".join(["New spin control value: ", str(int(spin_value))])
-        self.canvas.render(text)
-
-    def on_run_button(self, event):
-        """Handle the event when the user clicks the run button."""
-        text = "Run button pressed."
-        self.continue_button.Enable()
-        self.monitors_checklistbox.Disable()
-        self.canvas.render(text)
-    
-    def on_continue_button(self, event):
-        """Handle the event when the user clicks the continue button."""
-        text = "Continue button pressed."
-        self.monitors_checklistbox.Disable()
-        self.canvas.render(text)
-
-    def on_restart_button(self, event):
-        """Handle the event when the user clicks the restart button."""
-        text = "Restart button pressed."
-        self.monitors_checklistbox.Enable()
-        self.continue_button.Disable()
-        self.canvas.render(text)
-    
-    def on_text_box(self, event):
-        """Handle the event when the user enters text."""
-        text_box_value = self.text_box.GetValue()
-        text = "".join(["New text box value: ", text_box_value])
         self.canvas.render(text)
 
     def on_checkbox(self, event):
@@ -412,12 +484,3 @@ class Gui(wx.Frame):
         checkbox_value = self.checkbox.GetValue()
         text = "".join(["New checkbox value: ", str(checkbox_value)])
         self.canvas.render(text)
-
-    def open_circuit_file_in_editor(self, event):
-        """
-        We set a flag to indicate to logsim that the GUI is to be restarted.
-        Then we close the interface and allow logsim to start an editor.
-        Afterwards, logsim would restart the GUI.
-        """
-        self.edit_restart = True
-        self.Close()

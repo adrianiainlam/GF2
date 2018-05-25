@@ -15,4 +15,4 @@ CONNECT
 MONITOR
     xor2, # s
     or1   # cout
-END 
+END

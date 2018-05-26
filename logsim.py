@@ -87,9 +87,7 @@ def main(arg_list):
                 # We open the file in an editor to allow the user
                 # to change the file, then restart the GUI.
                 del app
-                import subprocess
-                subprocess.run(["editor", path])
-
+                run_editor(path)
                 # Re-initialise scanning and parsing
                 scanner = Scanner(path, names)
                 parser = Parser(names, devices, network, monitors, scanner)
@@ -103,6 +101,69 @@ def main(arg_list):
                     # Parser error messages would be enough, no need to
                     # re-inform users of parser failure.
                     break
+
+
+def run_editor(path):
+    # IMPORTANT NOTE:
+    # ---------------
+    #
+    # Here it is assumed that this program will only
+    # interact with the user who started it, i.e.
+    #  - NOT as a network service taking inputs from
+    #    untrusted sources, and
+    #  - NOT started with elevated privilege (NOT RECOMMENDED)
+    #    and subsequently taking inputs from unprivileged
+    #    users, etc.
+    #
+    # If this program is to be adapted in the future, such
+    # that ANY of the above conditions are not true, then
+    # the following call to subprocess.run() must either
+    # be removed or completely rewritten.
+    #
+    # To emphasize:
+    # The following code will DROP TO A SHELL,
+    # will allow ARBITRARY CODE EXECUTION,
+    # and will allow READ-WRITE ACCESS TO LOCAL FILES.
+
+    editor = find_editor()
+    while True:
+        if editor:
+            import subprocess
+            subprocess.run([editor, path])
+            break
+        else:
+            print("Unable to find a text editor. Please " +
+                  "enter the name or path of an editor, " +
+                  "or type \"exit\" to terminate the program.")
+            try:
+                user_editor = input('> ')
+            except EOFError:
+                exit(0)
+            if user_editor == "exit":
+                exit(0)
+            import shutil
+            editor = shutil.which(user_editor)
+
+
+def find_editor():
+    import os
+    import shutil
+
+    editors = []
+
+    # check environment variables
+    if 'VISUAL' in os.environ:
+        editors.append(os.environ['VISUAL'])
+    if 'EDITOR' in os.environ:
+        editor.append(os.environ['EDITOR'])
+
+    # a list of common editors to try
+    editors += ['emacs', 'nano', 'gedit', 'vim', 'vi', 'ed']
+
+    for i in editors:
+        if shutil.which(i):
+            return i
+    return None
 
 
 if __name__ == "__main__":

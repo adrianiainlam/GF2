@@ -223,6 +223,7 @@ class Gui(wx.Frame):
         self.monitors=monitors                      #making devices, names and network global varibales
         self.devices=devices
         self.names=names
+        self.network = network
         self.cycles_completed=0
 
         # Configure the file menu
@@ -232,6 +233,7 @@ class Gui(wx.Frame):
         fileMenu.Append(wx.ID_EXIT, "&Exit")
         menuBar.Append(fileMenu, "&File")  
         self.SetMenuBar(menuBar)
+        self.Bind(wx.EVT_MENU, self.on_menu)
 
         #MY CODE FROM HERE ONWARDS
         
@@ -284,7 +286,7 @@ class Gui(wx.Frame):
         width_checklistbox= max([len(i) for i in monitors_list])*9+120          #                    #estimate width of CheckListBox
         size_checklistbox=wx.Size(min((width_checklistbox),300),min(length_checklistbox,250))
         choices_list=[x for [x,y] in monitors_list]
-        monitors_checklistbox=wx.CheckListBox(self,choices=choices_list,size=size_checklistbox)
+        self.monitors_checklistbox=wx.CheckListBox(self,choices=choices_list,size=size_checklistbox)
         side_sizer.Add(self.monitors_checklistbox)
         self.monitors_checklistbox.Enable()
 
@@ -325,7 +327,7 @@ class Gui(wx.Frame):
         self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
         self.continue_button.Bind(wx.EVT_BUTTON, self.on_continue_button)
         self.restart_button.Bind(wx.EVT_BUTTON, self.on_restart_button)
-        self.retrieve_button.Bind(wx.EVT_BUTTON, self.open_circuit_file_in_editor)
+        retrieve_button.Bind(wx.EVT_BUTTON, self.open_circuit_file_in_editor)
 
         self.SetSizeHints(600, 600)
         self.SetSizer(main_sizer)
@@ -363,8 +365,8 @@ class Gui(wx.Frame):
                 print("Successfully zapped monitor")
             else:
                 print("Error! Could not zap monitor.")
-                
-# what do I do with this then? It is currently in not any event handler
+
+
     def on_menu(self, event):                                   
         """Handle the event when the user selects a menu item."""
         Id = event.GetId()

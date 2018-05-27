@@ -57,6 +57,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GLUT.glutInit()
         self.init = False
         self.context = wxcanvas.GLContext(self)
+        self.devices = devices
+        self.monitors = monitors
 
         # Initialise variables for panning
         self.pan_x = 0
@@ -87,6 +89,168 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glTranslated(self.pan_x, self.pan_y, 0.0)
         GL.glScaled(self.zoom, self.zoom, self.zoom)
 
+    def draw_signal(self, signal_list, x_start, x_step, y_low, y_high):
+        """
+        Draws one signal onto the canvas.
+
+        signal_list: A list containing the signal levels defined in
+                     Devices. signal_list[0] would correspond to the
+                     signal level between time cycles 0 and 1, etc.
+        x_start: The starting x-coordinate of the signal.
+        x_step: x-coordinate of the (k+1)th cycle, minus x-coordinate
+                of the kth cycle.
+        y_low: y-coordinate of a LOW level signal.
+        y_high: y-coordinate of a HIGH level signal.
+        """
+        GL.glColor3f(0.0, 0.0, 1.0)  # blue
+        GL.glBegin(GL.GL_LINE_STRIP)
+        prev_sig_blank = False
+        x = x_start
+        for signal in signal_list:
+            if signal == self.devices.BLANK:
+                if not prev_sig_blank:
+                    GL.glEnd()
+                    prev_sig_blank = True
+            else:
+                if prev_sig_blank:
+                    GL.glBegin(GL.GL_LINE_STRIP)
+                    prev_sig_blank = False
+
+                if signal == self.devices.HIGH:
+                    y = y_next = y_high
+                elif signal == self.devices.LOW:
+                    y = y_next = y_low
+                elif signal == self.devices.RISING:
+                    y = y_low
+                    y_next = y_high
+                elif signal == self.devices.FALLING:
+                    y = y_high
+                    y_next = y_low
+
+                GL.glVertex2f(x, y)
+                GL.glVertex2f(x + x_step, y_next)
+            x += x_step
+
+        if not prev_sig_blank:
+            GL.glEnd()
+
+    def draw_all_signals(self):
+        """
+        Draws all signals, together with their labels, axes, and other
+        decorations.
+
+        By default, the signals are obtained from
+        self.monitor.monitors_dictionary, and the signal names from
+        self.devices.get_signal_name(). If, however,
+        self.debug_dict is defined, then it will use that as
+        the monitors dictionary, and use device_id and output_id
+        in the labels.
+        """
+        init_orig = {'x': 30, 'y': 500}
+        current_orig = init_orig.copy()
+        x_step = 20
+        y_sig_sep = -75
+        y_high_low_diff = 25
+
+        max_sig_len = 0
+
+        if not hasattr(self, 'debug_dict'):
+            mon_dict = self.monitors.monitors_dictionary
+            get_signal_name = self.devices.get_signal_name
+        else:
+            mon_dict = self.debug_dict
+
+            def get_signal_name(device_id, output_id):
+                return "Testing, device_id=%d, output_id=%d" % \
+                       (device_id, output_id)
+
+        # FIXME sorting by IDs for testing/debug only, there may be better
+        # ways to sort them
+        for (device_id, output_id) in sorted(mon_dict):
+            monitor_name = get_signal_name(device_id, output_id)
+            signal_list = mon_dict[(device_id, output_id)]
+            max_sig_len = max(max_sig_len, len(signal_list))
+
+            x = current_orig['x']
+            y_low = current_orig['y']
+            y_high = y_low + y_high_low_diff
+
+            # label monitor name and signal levels
+            self.render_text('hi', x - 20, y_high - 3)
+            self.render_text('lo', x - 20, y_low - 3)
+            self.render_text(monitor_name, x, y_low - 18)
+
+            # then draw signal traces
+            self.draw_signal(signal_list, x, x_step, y_low, y_high)
+            current_orig['y'] += y_sig_sep
+
+        # now draw a time axis on top
+        if max_sig_len != 0:
+            self.draw_time_axis(max_sig_len, x_step, init_orig)
+
+    def draw_time_axis(self, max_sig_len, x_step, init_orig):
+        """
+        Draws a time axis above the first signal.
+
+        max_sig_len: The length of the longest signal, in number of
+                     cycles.
+        x_step: x-coordinate of the (k+1)th cycle, minus x-coordinate
+                of the kth cycle.
+        init_orig: a dictionary with 'x' and 'y' as keys, whose values
+                   are the x- and y- coordinates of the origin of
+                   the first signal.
+
+        Within this function, a constant, `tick_sep', is used to
+        control the separation between ticks on the axis.
+        """
+        # tick_sep: Seperation between ticks on the axis.
+        # A possible extension is to allow user input for this
+        # value in the UI.
+        tick_sep = 2
+
+        GL.glColor3f(0, 0, 0)
+        arrow_start = {
+            'x': init_orig['x'] - 5,
+            'y': init_orig['y'] + 50
+        }
+        # arrow_len = smallest int above max_sig_len that is
+        #             a multiple of tick_sep
+        arrow_len = \
+            ((max_sig_len + tick_sep - 1) // tick_sep) * tick_sep
+        arrow_end = {
+            'x': arrow_start['x'] + arrow_len * x_step + 20,
+            'y': arrow_start['y']
+        }
+        GL.glBegin(GL.GL_LINE_STRIP)
+        # Draw the horizontal line of the arrow
+        GL.glVertex2f(arrow_start['x'], arrow_start['y'])
+        GL.glVertex2f(arrow_end['x'], arrow_end['y'])
+        # Draw the upward pointing bit
+        GL.glVertex2f(arrow_end['x'] - 5, arrow_end['y'] + 3)
+        GL.glEnd()
+        # Draw the downward pointing bit
+        GL.glBegin(GL.GL_LINE_STRIP)
+        GL.glVertex2f(arrow_end['x'], arrow_end['y'])
+        GL.glVertex2f(arrow_end['x'] - 5, arrow_end['y'] - 3)
+        GL.glEnd()
+        # Draw ticks every tick_sep cycles
+        for i in range(0, arrow_len + 1, tick_sep):
+            tick_xpos = init_orig['x'] + i * x_step
+            GL.glBegin(GL.GL_LINE_STRIP)
+            GL.glVertex2f(tick_xpos, arrow_start['y'] - 3)
+            GL.glVertex2f(tick_xpos, arrow_start['y'] + 3)
+            GL.glEnd()
+
+            # adjustment for tick label: shift label slightly
+            # to the left, depending on how many characters in
+            # the label, such that the middle of the label is
+            # approx right on top of the tick
+            tick_label_adj = -4 * len(str(i))
+            self.render_text(str(i), tick_xpos + tick_label_adj,
+                             arrow_start['y'] + 5)
+        self.render_text('t / cycle', arrow_end['x'] + 10,
+                         arrow_end['y'] - 3)
+
     def render(self, text):
         """Handle all drawing operations."""
         self.SetCurrent(self.context)
@@ -101,19 +265,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Draw specified text at position (10, 10)
         self.render_text(text, 10, 10)
 
-        # Draw a sample signal trace
-        GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue - "3f stands for 3 dimensional and float"
-        GL.glBegin(GL.GL_LINE_STRIP)
-        for i in range(10):
-            x = (i * 20) + 10
-            x_next = (i * 20) + 30
-            if i % 2 == 0:
-                y = 75
-            else:
-                y = 100
-            GL.glVertex2f(x, y)         #2f stands for 2 dimensional and float
-            GL.glVertex2f(x_next, y)
-        GL.glEnd()
+        # now draw the signals
+        self.draw_all_signals()
 
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
@@ -385,8 +538,14 @@ class Gui(wx.Frame):
             if self.network.execute_network():
                 self.monitors.record_signals()
             else:
+                # TODO: change this, and other, `print()' calls to
+                # a GUI message.
                 print("Error! Network oscillating.")
                 return False
+
+        # TODO: confirm canvas signals are the same as those in console.
+        # Afterwards, remove the display_signals() line.
+        self.canvas.render('')
         self.monitors.display_signals()
         return True
 

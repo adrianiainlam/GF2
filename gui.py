@@ -60,6 +60,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.devices = devices
         self.monitors = monitors
 
+        self.msg = ""
+
         # Initialise variables for panning
         self.pan_x = 0
         self.pan_y = 0
@@ -164,9 +166,11 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 return "Testing, device_id=%d, output_id=%d" % \
                        (device_id, output_id)
 
-        # FIXME sorting by IDs for testing/debug only, there may be better
-        # ways to sort them
-        for (device_id, output_id) in sorted(mon_dict):
+        def mon_dict_sorter(entry_tuple):
+            (device_id, output_id) = entry_tuple
+            return get_signal_name(device_id, output_id)
+
+        for (device_id, output_id) in sorted(mon_dict, key=mon_dict_sorter):
             monitor_name = get_signal_name(device_id, output_id)
             signal_list = mon_dict[(device_id, output_id)]
             max_sig_len = max(max_sig_len, len(signal_list))
@@ -251,7 +255,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.render_text('t / cycle', arrow_end['x'] + 10,
                          arrow_end['y'] - 3)
 
-    def render(self, text):
+    def render(self, text=None):
         """Handle all drawing operations."""
         self.SetCurrent(self.context)
         if not self.init:
@@ -263,7 +267,13 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
         # Draw specified text at position (10, 10)
-        self.render_text(text, 10, 10)
+        # Draw message text at position (10, 10), keeping the same
+        # on-screen location even with panning.
+        # Ideally, its location should be the same even with zooming.
+        # This is not the case now. TODO figure out how to do this.
+        if text is not None:
+            self.msg = text
+        self.render_text(self.msg, 10 - self.pan_x, 10 - self.pan_y)
 
         # now draw the signals
         self.draw_all_signals()
@@ -282,9 +292,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             self.init = True
 
         size = self.GetClientSize()
-        text = "".join(["Canvas redrawn on paint event, size is ",
-                        str(size.width), ", ", str(size.height)])
-        self.render(text)
+        self.render()
 
     def on_size(self, event):
         """Handle the canvas resize event."""
@@ -294,43 +302,24 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def on_mouse(self, event):
         """Handle mouse events."""
-        text = ""
         if event.ButtonDown():
             self.last_mouse_x = event.GetX()
             self.last_mouse_y = event.GetY()
-            text = "".join(["Mouse button pressed at: ", str(event.GetX()),
-                            ", ", str(event.GetY())])
-        if event.ButtonUp():
-            text = "".join(["Mouse button released at: ", str(event.GetX()),
-                            ", ", str(event.GetY())])
-        if event.Leaving():
-            text = "".join(["Mouse left canvas at: ", str(event.GetX()),
-                            ", ", str(event.GetY())])
         if event.Dragging():
             self.pan_x += event.GetX() - self.last_mouse_x
             self.pan_y -= event.GetY() - self.last_mouse_y
             self.last_mouse_x = event.GetX()
             self.last_mouse_y = event.GetY()
             self.init = False
-            text = "".join(["Mouse dragged to: ", str(event.GetX()),
-                            ", ", str(event.GetY()), ". Pan is now: ",
-                            str(self.pan_x), ", ", str(self.pan_y)])
         if event.GetWheelRotation() < 0:
             self.zoom *= (1.0 + (
                 event.GetWheelRotation() / (20 * event.GetWheelDelta())))
             self.init = False
-            text = "".join(["Negative mouse wheel rotation. Zoom is now: ",
-                            str(self.zoom)])
         if event.GetWheelRotation() > 0:
             self.zoom /= (1.0 - (
                 event.GetWheelRotation() / (20 * event.GetWheelDelta())))
             self.init = False
-            text = "".join(["Positive mouse wheel rotation. Zoom is now: ",
-                            str(self.zoom)])
-        if text:
-            self.render(text)
-        else:
-            self.Refresh()  # triggers the paint event
+        self.Refresh()  # triggers the paint event
 
     def render_text(self, text, x_pos, y_pos):
         """Handle text drawing operations."""
@@ -417,26 +406,26 @@ class Gui(wx.Frame):
         side_sizer.Add(self.switches_text)
         side_sizer.Add(switches_sizer, 1, wx.ALL, 5)
 
-        [monitored_id_list,non_monitored_id_list]=monitors.get_signal_names()                           #MONITORS UI
+        # MONITORS UI
+        [monitored_name_list, non_monitored_name_list] \
+            = monitors.get_signal_names()
+        monitors_list = []
+        # create list of names of monitors and showed/not showed on display
+        for mon_name in monitored_name_list:
+            monitors_list.append([mon_name, True])
+        for mon_name in non_monitored_name_list:
+            monitors_list.append([mon_name, False])
 
-        monitors_list=[]
-        nr_mon=len(monitored_id_list)
-        nr_non_mon=len(non_monitored_id_list)
-        for i in range(nr_mon):                                                    #create list of names of monitors and showed/not showed on display from IDs
-            monitor=monitored_id_list[i]
-            #device_name=self.names.get_name_string(monitor[0])
-            #port_name=self.names.get_name_string(monitor[1])
-            #monitors_list.append([device_name+"."+port_name,True])                          #True for monitored
-            monitors_list.append([monitor,True])
-
-        for i in range(nr_mon,nr_mon+nr_non_mon):
-            monitor=non_monitored_id_list[i - nr_mon]
-            #device_name=self.names.get_name_string(monitor[0])
-            #port_name=self.names.get_name_string(monitor[1])
-            #monitors_list.append([device_name+"."+port_name,False])                         #False as it is not monitored
-            monitors_list.append([monitor, False])
-
-        monitors_list=sorted(monitors_list)
+        # Sort the monitors list.
+        # Using LooseVersion to sort the list makes sure that
+        # e.g. "a10" gets sorted after "a2", which is not true
+        # if sorted simply as strings.
+        # Note that semantically it may be better to use natsort
+        # instead of LooseVersion, but natsort is not in the
+        # standard library while distutils.version is.
+        from distutils.version import LooseVersion
+        monitors_list = sorted(monitors_list, key=lambda mon_status:
+                               LooseVersion(mon_status[0]))
                                                                                 #create monitor checklistbox
         length_checklistbox=len(monitors_list)*21                                           #estimate length of CheckListBox
         width_checklistbox= max([len(i) for i in monitors_list])*9+120          #                    #estimate width of CheckListBox
@@ -446,32 +435,32 @@ class Gui(wx.Frame):
         side_sizer.Add(self.monitors_checklistbox)
         self.monitors_checklistbox.Enable()
 
-        for i in range(len(monitors_list)):                                   #initialise checked boxes
-            if monitors_list[i][1]:
-                self.monitors_checklistbox.SetCheckedStrings([monitors_list[i][0]])
+        checked_strings = [x[0] for x in monitors_list if x[1]]
+        self.monitors_checklistbox.SetCheckedStrings(checked_strings)
 
-
-        switches_id_list=[x for x in self.devices.devices_list if x.device_kind==devices.SWITCH]                                     #SWITCHES UI
-        switches_list=[]
-        for i in range(len(switches_id_list)):
-            switch=switches_id_list[i]
-            #switch_state=self.devices.get_device(switch).switch_state
+        # SWITCHES UI
+        switches_list = [x for x in self.devices.devices_list
+                         if x.device_kind == devices.SWITCH]
+        switches_state_list = []
+        for switch in switches_list:
             switch_state = switch.switch_state
-            switches_list.append([switch,False if switch_state==devices.LOW else True])
+            switches_state_list.append([switch, switch_state != devices.LOW])
 
-        #switches_list=sorted(switches_list)
-        choices_list=[x for [x,y] in switches_list]
+        switches_list = sorted(switches_list, key=lambda sw:
+                               self.names.get_name_string(sw.device_id))
+        choices_list = [x for [x, y] in switches_state_list]
         column_number=0
         column_range=6
-        row_sizer = wx.BoxSizer(wx.HORIZONTAL) 
-        for s in range(len(switches_list)):                                #Setup checkboxes for switches
+        row_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        # Setup checkboxes for switches
+        for s in range(len(switches_state_list)):
             column_number=column_number+1
             label = self.names.get_name_string(choices_list[s].device_id)
-            #self.checkbox = wx.CheckBox(self,label=choices_list[s], name=choices_list[s])
-            self.checkbox = wx.CheckBox(self,label=label, name=label)
-            self.checkbox.SetValue(switches_list[s][1])
+            self.checkbox = wx.CheckBox(self, label=label, name=label)
+            self.checkbox.SetValue(switches_state_list[s][1])
             row_sizer.Add(self.checkbox, 0, wx.ALL, 5)
-            if (column_number==column_range and s!=(len(switches_list)-1)):
+            if column_number == column_range and \
+               s != len(switches_state_list) - 1:
                 column_number=0
                 switches_sizer.Add(row_sizer)
                 row_sizer=wx.BoxSizer(wx.HORIZONTAL) 
@@ -499,14 +488,15 @@ class Gui(wx.Frame):
         switch_id=self.names.query(switch_name)
         switch_state = (self.devices.LOW if event.IsChecked()==False else self.devices.HIGH) 
         if self.devices.set_switch(switch_id,switch_state):
-            print("Successfully set switch.")
+            self.canvas.render("Successfully set switch.")
         else:
-            print("Error! Invalid switch.")
+            self.canvas.render("Error! Invalid switch.")
 
 
     def OnChecklist(self,event):          #this is probably going to be useless in the final implementation
         clicked = event.GetEventObject()
         device_string=event.GetString()
+        index = event.GetInt()
         # print(device)
         # print(clicked.IsChecked(index)*1) 
         [device,port]=device_string.split(".") if \
@@ -518,14 +508,14 @@ class Gui(wx.Frame):
         if (clicked.IsChecked(index)):
             monitor_error = self.monitors.make_monitor(device_id, port_id, self.cycles_completed)
             if monitor_error == self.monitors.NO_ERROR:
-                print("Successfully made monitor.")
+                self.canvas.render("Successfully made monitor.")
             else:
-                print("Error! Could not make monitor.")
+                self.canvas.render("Error! Could not make monitor.")
         else:
             if self.monitors.remove_monitor(device_id, port_id):
-                print("Successfully zapped monitor")
+                self.canvas.render("Successfully zapped monitor")
             else:
-                print("Error! Could not zap monitor.")
+                self.canvas.render("Error! Could not zap monitor.")
 
 
     def on_menu(self, event):                                   
@@ -546,21 +536,14 @@ class Gui(wx.Frame):
             if self.network.execute_network():
                 self.monitors.record_signals()
             else:
-                # TODO: change this, and other, `print()' calls to
-                # a GUI message.
-                print("Error! Network oscillating.")
+                self.canvas.render("Error! Network oscillating.")
                 return False
 
-        # TODO: confirm canvas signals are the same as those in console.
-        # Afterwards, remove the display_signals() line.
-        self.canvas.render('')
-        self.monitors.display_signals()
+        self.canvas.render("Ran for %d cycles." % cycles)
         return True
 
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""
-        text = "Run button pressed."
- 
         self.cycles_completed = 0
         cycles = self.spin.GetValue()
         if cycles is not None:
@@ -568,31 +551,23 @@ class Gui(wx.Frame):
             self.monitors_checklistbox.Disable() 
         
             self.monitors.reset_monitors()                    # if the number of cycles provided is valid
-            print("".join(["Running for ", str(cycles), " cycles"]))
             self.devices.cold_startup()
             if self.run_network(cycles):
                 self.cycles_completed += cycles
-
-        self.canvas.render(text)
     
     def on_continue_button(self, event):
         """Handle the event when the user clicks the continue button."""
-        text = "Continue button pressed."
         self.monitors_checklistbox.Disable()
 
         cycles = self.spin.GetValue()
         if cycles is not None:  
             if self.run_network(cycles):
                 self.cycles_completed += cycles
-                print(" ".join(["Continuing for", str(cycles), "cycles.",
-                                "Total:", str(self.cycles_completed)]))
-
-        self.canvas.render(text)
+                self.canvas.render("Continued for %d cycles. Total: %d" %
+                                   (cycles, self.cycles_completed))
 
     def on_restart_button(self, event):
         """Handle the event when the user clicks the restart button."""
-        text = "Restart button pressed."
-
         self.monitors_checklistbox.Enable()
         self.continue_button.Disable()
 
@@ -600,7 +575,10 @@ class Gui(wx.Frame):
         self.cycles_completed=0
         self.spin.SetValue(10)
 
-        self.canvas.render(text)
+        self.canvas.init = False  # force canvas to re-init positions etc
+        self.canvas.pan_x = self.canvas.pan_y = 0
+        self.canvas.zoom = 1
+        self.canvas.render("Restarted")
 
     def open_circuit_file_in_editor(self, event):
         """

@@ -118,7 +118,11 @@ class Parser:
         self._current_sym = self._scanner.get_symbol()
 
         while self._current_sym.symtype not in [sym_t.KEYWORD, sym_t.EOF]:
-            ret =  self._parse_device_def() and ret
+            [status, device_kind, devices] = self._parse_device_def()
+            ret =  status and ret
+            if ret == True:
+                for device_id, parameter in devices.items():
+                    self._devices.make_device(device_id, device_kind, parameter)
             self._current_sym = self._scanner.get_symbol()
 
         if self._current_sym.symtype == sym_t.EOF:
@@ -138,21 +142,27 @@ class Parser:
         SEMICOLON = self._scanner.symbol_types.SEMICOLON
 
         ret = True
+        [device_kind_status, device_kind] = self._parse_device_type()
 
-        ret = ret and self._parse_device_type()
+        ret = ret and device_kind_status
+        named_devices = {}
 
-        ret = ret and self._parse_device()
+        [device_status, device] = self._parse_device()
+        named_devices.update(device)
+        ret = device_status and ret
 
         while self._current_sym.symtype == COMMA:
-            ret = self._parse_device() and ret
+            [device_status, next_device] = self._parse_device()
+            named_devices.update(next_device)
+            ret = device_status and ret
 
         if self._current_sym.symtype not in [COMMA, SEMICOLON]:
             # TODO Error expected comma or semicolon
             self.display_error(self.NO_PUNCTUATION, self.stopping_symbols["BETWEEN"])
-            return False
+            return [False, None, None]
         # if this part reached then current_sym must be SEMICOLON,
         # hence we terminate
-        return ret
+        return [ret, device_kind, named_devices]
 
     def _parse_device_type(self):
         """
@@ -166,8 +176,9 @@ class Parser:
         if self._current_sym.symtype != NAME_CAPS:
             # expected DeviceType (all-caps identifier)
             self.display_error(self.NOT_VALID_DEVICE_TYPE, self.stopping_symbols["BETWEEN"] )
-            return False
-        return True
+            return [False, None]
+
+        return [True, self._current_sym.symid]
 
     def _parse_device(self):
         """
@@ -184,7 +195,10 @@ class Parser:
 
         ret = True
 
-        ret = ret and self._parse_device_name()
+        [device_name_status, device_id] = self._parse_device_name()
+        #setting default parameter value
+        parameter = None
+        ret = ret and device_name_status
 
         self._current_sym = self._scanner.get_symbol()
 
@@ -197,15 +211,16 @@ class Parser:
             if self._current_sym.symtype != NUMBER:
                 # ERROR
                 self.display_error(self.NO_PARAMETER, self.stopping_symbols["BETWEEN"])
-                return False
+                return [False, None]
+            parameter = self._current_sym.symid
             self._current_sym = self._scanner.get_symbol()
             if self._current_sym.symtype != CLOSEPAREN:
                 # Error
                 self.display_error(self.NO_CLOSE_BRACKET, self.stopping_symbols["BETWEEN"])
-                return False
+                return [False, None]
             self._current_sym = self._scanner.get_symbol()
 
-        return ret  ## comma/semicolon checked in device_def
+        return [ret, {device_id : parameter}]  ## comma/semicolon checked in device_def
 
 
     def _parse_device_name(self, getsym=True):
@@ -229,8 +244,8 @@ class Parser:
             # expected device name
             self.display_error(self.NO_NAME, self.stopping_symbols["BETWEEN"])
             # skip to next comma or semicolon
-            return False
-        return True
+            return [False, None]
+        return [True, self._current_sym.symid]
 
 
     def _parse_connect_list(self):
@@ -254,10 +269,19 @@ class Parser:
 
         self._current_sym = self._scanner.get_symbol()
 
-        while self._current_sym.symtype != KEYWORD:
-            ret = self._parse_connection() and ret
+        while self._current_sym.symtype not in [KEYWORD, EOF]:
+            [status, output, inputs] = self._parse_connection()
+            #print(list(map(self._names.get_name_string, list(output.keys()))))
+            #print(list(map(self._names.get_name_string, list(inputs.keys()))))
+            ret = status and ret
+            if ret == True:
+                for output_device, output_port in output.items():
+                    for input_device, input_port in inputs.items():
+                        self._network.make_connection(output_device, output_port, input_device, input_port)
             self._current_sym = self._scanner.get_symbol()
 
+
+        #print(self._names.get_name_string(self._network.get_connected_output(self._names.query("or1"), self._names.query("I2"))[0]))
         if self._current_sym.symtype == EOF:
             return False
         return ret
@@ -272,30 +296,39 @@ class Parser:
         """
         ret = True
 
-        ret = ret and self._parse_output()
+        [output_status, output_device_id, output_port_id] = self._parse_output()
+        ret = ret and output_status
 
         CONNECTION_OP = self._scanner.symbol_types.CONNECTION_OP
         if self._current_sym.symtype != CONNECTION_OP:
             # error
             self.display_error(self.NO_CONNECTION_OP, self.stopping_symbols["BETWEEN"])
-            return False
+            return [False, None, None]
 
-        ret = self._parse_input() and ret
+        inputs = {}
+        [input_status, input_device_id, input_port_id] = self._parse_input()
+        ret = input_status and ret
+        if input_status == True:
+            inputs[input_device_id] = input_port_id
+
 
         COMMA = self._scanner.symbol_types.COMMA
         SEMICOLON = self._scanner.symbol_types.SEMICOLON
 
         self._current_sym = self._scanner.get_symbol()
         while self._current_sym.symtype == COMMA:
-            ret = self._parse_input() and ret
+            [input_status, input_device_id, input_port_id] = self._parse_input()
+            if input_status == True:
+                inputs[input_device_id] = input_port_id
+            ret = input_status and ret
             self._current_sym = self._scanner.get_symbol()
 
 
         if self._current_sym.symtype != SEMICOLON:
             # error
             self.display_error(self.NO_PUNCTUATION, self.stopping_symbols["BETWEEN"])
-            return False
-        return ret
+            return [False, None, None]
+        return [ret, {output_device_id: output_port_id}, inputs]
 
 
     def _parse_output(self):
@@ -308,7 +341,8 @@ class Parser:
         ret = True
         # get_symbol() has already been called by _parse_connection_list()
         # for keyword check
-        ret = ret and self._parse_device_name(getsym=False)
+        [name_status, output_device_id] = self._parse_device_name(getsym=False)
+        ret = ret and name_status
 
         self._current_sym = self._scanner.get_symbol()
         # current sym should then now be either
@@ -317,7 +351,8 @@ class Parser:
         DOT = self._scanner.symbol_types.DOT
         SEMICOLON = self._scanner.symbol_types.SEMICOLON
         NAME_CAPS = self._scanner.symbol_types.NAME_CAPS
-
+        # making output_port_id = None for outputs with only 1 port
+        output_port_id = None
         if self._current_sym.symtype == DOT:
             # next symbol should then be output pin
             self._current_sym = self._scanner.get_symbol()
@@ -325,10 +360,10 @@ class Parser:
                 # Error
                 # output pin is not all capital letters
                 self.display_error(self.NOT_VALID_OUTPUT, self.stopping_symbols["BETWEEN"])
-                return False
-
+                return [False, None, None]
+            output_port_id = self._current_sym.symid
             self._current_sym = self._scanner.get_symbol()
-        return ret
+        return [ret, output_device_id, output_port_id]
 
 
     def _parse_input(self):
@@ -340,7 +375,8 @@ class Parser:
         """
         ret = True
 
-        ret = ret and self._parse_device_name()
+        [name_status, input_device_id] = self._parse_device_name()
+        ret = ret and name_status
 
         self._current_sym = self._scanner.get_symbol()
 
@@ -351,13 +387,14 @@ class Parser:
         if self._current_sym.symtype != DOT:
             # error
             self.display_error(self.NO_DOT, self.stopping_symbols["BETWEEN"])
-            return False
+            return [False, None, None]
         self._current_sym = self._scanner.get_symbol()
         if self._current_sym.symtype not in [NAME_CAPSNUM, NAME_CAPS]:
             # error invalid input pin
             self.display_error(self.NOT_VALID_INPUT, self.stopping_symbols["BETWEEN"])
-            return False
-        return ret
+            return [False, None, None]
+        input_port_id = self._current_sym.symid
+        return [ret, input_device_id, input_port_id]
 
     def _parse_monitor_list(self):
         """
@@ -381,12 +418,19 @@ class Parser:
 
         self._current_sym = self._scanner.get_symbol()
 
-        ret = self._parse_output() and ret
+        [status, output_device_id, output_port_id] = self._parse_output()
+        ret = status and ret
+        if ret == True:
+            self._monitors.make_monitor(output_device_id, output_port_id)
 
         while self._current_sym.symtype == COMMA:
             self._current_sym = self._scanner.get_symbol()
-            ret = self._parse_output() and ret
+            [status, output_device_id, output_port_id] = self._parse_output()
+            ret = status and ret
+            if ret == True:
+                self._monitors.make_monitor(output_device_id, output_port_id)
 
+        print(self._monitors.get_signal_names())
         if self._current_sym.symtype == EOF:
             return False
         return ret
@@ -434,8 +478,7 @@ class Parser:
         while ((self._current_sym.symtype not in stopping_symbols) and (self._current_sym.symid not in stopping_symbols)):
 
               self._current_sym = self._scanner.get_symbol()
-              
-              print(self._current_sym.symtype)
+
 
 
 
@@ -445,7 +488,10 @@ class Parser:
 
     def boilerplate_error(self):
         path = self._scanner.path
-        std_string = "File \"{}\", line {}"
-        print("\n" + "Traceback:", std_string.format(path, self._current_sym.linenum))
-        print('\n','\t', self._scanner.filelines[self._current_sym.linenum], end='')
-        print('\t', ' '*(self._current_sym.colnum -1)+ '^')
+        if self._scanner.filelines == []:
+            print("File is empty")
+        else:
+            std_string = "File \"{}\", line {}"
+            print("\n" + "Traceback:", std_string.format(path, self._current_sym.linenum))
+            print('\n','\t', self._scanner.filelines[self._current_sym.linenum], end='')
+            print('\t', ' '*(self._current_sym.colnum -1)+ '^')

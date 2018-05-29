@@ -38,7 +38,7 @@ def parser_emptyfile(names):
 
 # Convenient function for SPlitting a multiline string into the
 # "filelines" format used by Scanner, keeping '\n' intact.
-def sp(x):
+def sp(multilinestr):
     return [x + '\n' for x in multilinestr.split('\n')][1:]
 
 

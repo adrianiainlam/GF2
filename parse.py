@@ -56,6 +56,14 @@ class Parser:
         self.NOT_VALID_OUTPUT, self.NO_CONNECTION_OP, self.NO_DOT, self.NOT_VALID_INPUT,
         self.NO_MONITOR, self.NO_SEMI_COLON] = self._names.unique_error_codes(15)
 
+        self.stopping_symbols = {"DEVICE": [self._names.lookup(["END"])[0],self._names.lookup(["MONITOR"])[0],
+                                self._names.lookup(["DEVICE"])[0], self._names.lookup(["CONNECT"])[0], self._scanner.symbol_types.EOF],
+                                "CONNECT": [self._names.lookup(["END"])[0],self._names.lookup(["MONITOR"])[0], self._scanner.symbol_types.EOF],
+                                "MONITOR" : [self._names.lookup(["END"])[0], self._scanner.symbol_types.EOF],
+                                "END" : [self._scanner.symbol_types.EOF],
+                                "EOF" : [self._scanner.symbol_types.EOF],
+                                "BETWEEN" : [self._names.lookup(["END"])[0],self._names.lookup(["MONITOR"])[0], self._names.lookup(["DEVICE"])[0], self._names.lookup(["CONNECT"])[0], self._scanner.symbol_types.SEMICOLON, self._scanner.symbol_types.EOF]}
+
     def parse_network(self):
         """Parse the circuit definition file."""
         # For now just return True, so that userint and gui can run in the
@@ -66,7 +74,7 @@ class Parser:
 
         ret = ret and self._parse_device_list()
         ret = self._parse_connect_list() and ret
-        ret = ret and self._parse_monitor_list()
+        ret = self._parse_monitor_list() and ret
 
         # _current_sym should then be "END" keyword
         KEYWORD = self._scanner.symbol_types.KEYWORD
@@ -74,13 +82,13 @@ class Parser:
         if self._current_sym.symtype != KEYWORD or \
            self._current_sym.symid != self._names.lookup(["END"])[0]:
             # error: expected "END"
-            self.display_error(self.NO_END)
+            self.display_error(self.NO_END, self.stopping_symbols["END"])
             return False
         else:
             # then we expect EOF
             self._current_sym = self._scanner.get_symbol()
             if self._current_sym.symtype != EOF:
-                self.display_error(self.NO_EOF)
+                self.display_error(self.NO_EOF,self.stopping_symbols["END"])
                 return False
 
         return ret
@@ -103,19 +111,14 @@ class Parser:
         if self._current_sym.symtype != sym_t.KEYWORD or \
            self._current_sym.symid != lookup(["DEVICE"])[0]:
             # error stating Keyword "DEVICE" not found at start
-            self.display_error(self.NO_DEVICE)
+            self.display_error(self.NO_DEVICE, self.stopping_symbols["DEVICE"])
             # TODO then proceed to find the next keyword, terminating
-            # if EOF reached.
-            #   if DEVICE found, restart from here.
-            #   elif CONNECT found, pass to CONNECT
-            #   elif MONITOR found, pass to MONITOR
-            #   else, EOF reached, terminate
             return False  # TODO designate error codes
 
         self._current_sym = self._scanner.get_symbol()
 
         while self._current_sym.symtype not in [sym_t.KEYWORD, sym_t.EOF]:
-            ret = ret and self._parse_device_def()
+            ret =  self._parse_device_def() and ret
             self._current_sym = self._scanner.get_symbol()
 
         if self._current_sym.symtype == sym_t.EOF:
@@ -140,12 +143,12 @@ class Parser:
 
         ret = ret and self._parse_device()
 
-        while self._current_sym.symtype == COMMA and ret:
-            ret = ret and self._parse_device()
+        while self._current_sym.symtype == COMMA:
+            ret = self._parse_device() and ret
 
         if self._current_sym.symtype not in [COMMA, SEMICOLON]:
             # TODO Error expected comma or semicolon
-            self.display_error(self.NO_PUNCTUATION)
+            self.display_error(self.NO_PUNCTUATION, self.stopping_symbols["BETWEEN"])
             return False
         # if this part reached then current_sym must be SEMICOLON,
         # hence we terminate
@@ -162,7 +165,7 @@ class Parser:
         NAME_CAPS = self._scanner.symbol_types.NAME_CAPS
         if self._current_sym.symtype != NAME_CAPS:
             # expected DeviceType (all-caps identifier)
-            self.display_error(self.NOT_VALID_DEVICE_TYPE)
+            self.display_error(self.NOT_VALID_DEVICE_TYPE, self.stopping_symbols["BETWEEN"] )
             return False
         return True
 
@@ -193,12 +196,12 @@ class Parser:
             self._current_sym = self._scanner.get_symbol()
             if self._current_sym.symtype != NUMBER:
                 # ERROR
-                self.display_error(self.NO_PARAMETER)
+                self.display_error(self.NO_PARAMETER, self.stopping_symbols["BETWEEN"])
                 return False
             self._current_sym = self._scanner.get_symbol()
             if self._current_sym.symtype != CLOSEPAREN:
                 # Error
-                self.display_error(self.NO_CLOSE_BRACKET)
+                self.display_error(self.NO_CLOSE_BRACKET, self.stopping_symbols["BETWEEN"])
                 return False
             self._current_sym = self._scanner.get_symbol()
 
@@ -224,7 +227,7 @@ class Parser:
         if self._current_sym.symtype not in NAME_ANY:
             # ERROR
             # expected device name
-            self.display_error(self.NO_NAME)
+            self.display_error(self.NO_NAME, self.stopping_symbols["BETWEEN"])
             # skip to next comma or semicolon
             return False
         return True
@@ -245,14 +248,14 @@ class Parser:
         if self._current_sym.symtype != KEYWORD or \
            self._current_sym.symid != self._names.lookup(["CONNECT"])[0]:
             # error
-            self.display_error(self.NO_CONNECT)
+            self.display_error(self.NO_CONNECT, self.stopping_symbols["CONNECT"])
             # recovery: see _parse_device_list
             return False
 
         self._current_sym = self._scanner.get_symbol()
 
-        while self._current_sym.symtype != KEYWORD and ret:
-            ret = ret and self._parse_connection()
+        while self._current_sym.symtype != KEYWORD:
+            ret = self._parse_connection() and ret
             self._current_sym = self._scanner.get_symbol()
 
         if self._current_sym.symtype == EOF:
@@ -274,22 +277,23 @@ class Parser:
         CONNECTION_OP = self._scanner.symbol_types.CONNECTION_OP
         if self._current_sym.symtype != CONNECTION_OP:
             # error
-            self.display_error(self.NO_CONNECTION_OP)
+            self.display_error(self.NO_CONNECTION_OP, self.stopping_symbols["BETWEEN"])
             return False
 
-        ret = ret and self._parse_input()
+        ret = self._parse_input() and ret
 
         COMMA = self._scanner.symbol_types.COMMA
         SEMICOLON = self._scanner.symbol_types.SEMICOLON
 
         self._current_sym = self._scanner.get_symbol()
         while self._current_sym.symtype == COMMA:
-            ret = ret and self._parse_input()
+            ret = self._parse_input() and ret
             self._current_sym = self._scanner.get_symbol()
+
 
         if self._current_sym.symtype != SEMICOLON:
             # error
-            self.display_error(self.NO_SEMI_COLON)
+            self.display_error(self.NO_PUNCTUATION, self.stopping_symbols["BETWEEN"])
             return False
         return ret
 
@@ -320,7 +324,7 @@ class Parser:
             if self._current_sym.symtype != NAME_CAPS:
                 # Error
                 # output pin is not all capital letters
-                self.display_error(self.NOT_VALID_OUTPUT)
+                self.display_error(self.NOT_VALID_OUTPUT, self.stopping_symbols["BETWEEN"])
                 return False
 
             self._current_sym = self._scanner.get_symbol()
@@ -346,12 +350,12 @@ class Parser:
 
         if self._current_sym.symtype != DOT:
             # error
-            self.display_error(self.NO_DOT)
+            self.display_error(self.NO_DOT, self.stopping_symbols["BETWEEN"])
             return False
         self._current_sym = self._scanner.get_symbol()
         if self._current_sym.symtype not in [NAME_CAPSNUM, NAME_CAPS]:
             # error invalid input pin
-            self.display_error(self.NOT_VALID_INPUT)
+            self.display_error(self.NOT_VALID_INPUT, self.stopping_symbols["BETWEEN"])
             return False
         return ret
 
@@ -371,33 +375,40 @@ class Parser:
         if self._current_sym.symtype != KEYWORD or \
            self._current_sym.symid != self._names.lookup(["MONITOR"])[0]:
             # error
-            self.display_error(self.NO_MONITOR)
+            self.display_error(self.NO_MONITOR, self.stopping_symbols["MONITOR"])
             # recovery: see _parse_device_list()
             return False
 
         self._current_sym = self._scanner.get_symbol()
 
-        ret = ret and self._parse_output()
+        ret = self._parse_output() and ret
 
         while self._current_sym.symtype == COMMA:
             self._current_sym = self._scanner.get_symbol()
-            ret = ret and self._parse_output()
+            ret = self._parse_output() and ret
 
         if self._current_sym.symtype == EOF:
             return False
         return ret
 
-    def display_error(self, error_type):
+    def display_error(self, error_type, stopping_symbols):
+        #increase the error_counts
         self._syntax_err_cnt += 1
+        #display standard traceback
         self.boilerplate_error()
+        #various syntactic errors
         if error_type == self.NO_DEVICE:
-            print("KeywordError: missing keyword: DEVICE")
+            print("KeywordError: expected keyeord \"DEVICE\" at start of file")
+            exit(1)
         elif error_type == self.NO_END:
-            print("KeywordError: missing keyword: END")
+            print("KeywordError: expected keyword \"END\" at end of file")
+            exit(1)
         elif error_type == self.NO_MONITOR:
-            print("KeywordError: missing keyword: MONITOR")
+            print("KeywordError: expected keyword \"MONITOR\" before monitoring signals")
+            exit(1)
         elif error_type == self.NO_CONNECT:
-            print("KeywordError: missing keyword: CONNECT")
+            print("KeywordError: expected keyword \"CONNECT\" before connections")
+            exit(1)
         elif error_type == self.NO_EOF:
             print("FileError: Expected definition file to end here")
         elif error_type == self.NOT_VALID_DEVICE_TYPE:
@@ -420,6 +431,12 @@ class Parser:
             print("ConnectionError: Missing input operator \".\" ")
         elif error_type == self.NO_SEMI_COLON:
             print("FileError: Missing semi-colon to separate connections")
+        while ((self._current_sym.symtype not in stopping_symbols) and (self._current_sym.symid not in stopping_symbols)):
+
+              self._current_sym = self._scanner.get_symbol()
+              
+              print(self._current_sym.symtype)
+
 
 
 
@@ -429,6 +446,6 @@ class Parser:
     def boilerplate_error(self):
         path = self._scanner.path
         std_string = "File \"{}\", line {}"
-        print("Traceback:", std_string.format(path, self._current_sym.linenum))
-        print('\t', self._scanner.filelines[self._current_sym.linenum], end='')
+        print("\n" + "Traceback:", std_string.format(path, self._current_sym.linenum))
+        print('\n','\t', self._scanner.filelines[self._current_sym.linenum], end='')
         print('\t', ' '*(self._current_sym.colnum -1)+ '^')

@@ -142,12 +142,16 @@ def test_scanner_fulladder_ripplecounter(scanner_fulladder,
             t.CLOSEPAREN: content.count(')'),
             t.KEYWORD: keyword_cnt,
             t.NUMBER: number_cnt,
-            t.NAME: name_cnt
+            t.NAME_CAPS: name_cnt
+            # for now we hack NAME_CAPS to store all names
         }
 
         a = sc.get_symbol()
         while a.symtype != t.EOF:
-            sym_cnt[a.symtype] -= 1
+            if a.symtype in [t.NAME_CAPSNUM, t.NAME_ALNUM]:
+                sym_cnt[t.NAME_CAPS] -= 1
+            else:
+                sym_cnt[a.symtype] -= 1
             a = sc.get_symbol()
 
         for i in sym_cnt:

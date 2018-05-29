@@ -503,7 +503,9 @@ class Gui(wx.Frame):
         device_string=event.GetString()
         # print(device)
         # print(clicked.IsChecked(index)*1) 
-        [device,port]=device_string.split(".")
+        [device,port]=device_string.split(".") if \
+                        "." in device_string else \
+                        (device_string, "")
         device_id = self.names.query(device)
         port_id = self.names.query(port)
 

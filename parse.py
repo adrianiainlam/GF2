@@ -62,7 +62,8 @@ class Parser:
                                 "MONITOR" : [self._names.lookup(["END"])[0], self._scanner.symbol_types.EOF],
                                 "END" : [self._scanner.symbol_types.EOF],
                                 "EOF" : [self._scanner.symbol_types.EOF],
-                                "BETWEEN" : [self._names.lookup(["END"])[0],self._names.lookup(["MONITOR"])[0], self._names.lookup(["DEVICE"])[0], self._names.lookup(["CONNECT"])[0], self._scanner.symbol_types.SEMICOLON, self._scanner.symbol_types.EOF]}
+                                "BETWEEN" : [self._names.lookup(["END"])[0],self._names.lookup(["MONITOR"])[0], self._names.lookup(["DEVICE"])[0], self._names.lookup(["CONNECT"])[0],
+                                self._scanner.symbol_types.SEMICOLON, self._scanner.symbol_types.EOF]}
 
     def parse_network(self):
         """Parse the circuit definition file."""
@@ -90,6 +91,8 @@ class Parser:
             if self._current_sym.symtype != EOF:
                 self.display_error(self.NO_EOF,self.stopping_symbols["END"])
                 return False
+        #print(self._syntax_err_cnt)
+        #print(self._network.check_network())
 
         return ret
 
@@ -276,8 +279,8 @@ class Parser:
             ret = status and ret
             if ret == True:
                 for output_device, output_port in output.items():
-                    for input_device, input_port in inputs.items():
-                        self._network.make_connection(output_device, output_port, input_device, input_port)
+                    for pair in inputs:
+                        self._network.make_connection(output_device, output_port, pair[0], pair[1])
             self._current_sym = self._scanner.get_symbol()
 
 
@@ -305,11 +308,11 @@ class Parser:
             self.display_error(self.NO_CONNECTION_OP, self.stopping_symbols["BETWEEN"])
             return [False, None, None]
 
-        inputs = {}
+        inputs = []
         [input_status, input_device_id, input_port_id] = self._parse_input()
         ret = input_status and ret
         if input_status == True:
-            inputs[input_device_id] = input_port_id
+            inputs.append((input_device_id,input_port_id))
 
 
         COMMA = self._scanner.symbol_types.COMMA
@@ -319,7 +322,7 @@ class Parser:
         while self._current_sym.symtype == COMMA:
             [input_status, input_device_id, input_port_id] = self._parse_input()
             if input_status == True:
-                inputs[input_device_id] = input_port_id
+                inputs.append((input_device_id, input_port_id))
             ret = input_status and ret
             self._current_sym = self._scanner.get_symbol()
 
@@ -430,7 +433,7 @@ class Parser:
             if ret == True:
                 self._monitors.make_monitor(output_device_id, output_port_id)
 
-        print(self._monitors.get_signal_names())
+        #print(self._monitors.get_signal_names())
         if self._current_sym.symtype == EOF:
             return False
         return ret

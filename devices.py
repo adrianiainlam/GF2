@@ -317,8 +317,8 @@ class Devices:
                     error_type = self.NO_ERROR
             else:  # other gates
                 if device_property is None:
-                    error_type = self.NO_QUALIFIER
-                elif device_property not in range(1, 17):  # between 1 and 16
+                    device_property = 2
+                if device_property not in range(1, 17):  # between 1 and 16
                     error_type = self.INVALID_QUALIFIER
                 else:
                     self.make_gate(device_id, device_kind, device_property)

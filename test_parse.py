@@ -67,7 +67,7 @@ def test_parse_device_type(parser_emptyfile, filelines, correctness):
 
     p._current_sym = sc.get_symbol()
 
-    assert p._parse_device_type() == correctness
+    assert p._parse_device_type()[0] == correctness
 
 
 @pytest.mark.parametrize("filelines, correctness", [
@@ -93,7 +93,7 @@ def test_parse_device_name(parser_emptyfile, filelines, correctness):
     sc = p._scanner
     sc.filelines = filelines
 
-    assert p._parse_device_name() == correctness
+    assert p._parse_device_name()[0] == correctness
 
 
 @pytest.mark.parametrize("filelines, correctness", [
@@ -168,7 +168,7 @@ def test_parse_device_def(parser_emptyfile, filelines, correctness):
 
     p._current_sym = sc.get_symbol()
 
-    assert p._parse_device_def() == correctness
+    assert p._parse_device_def()[0] == correctness
 
 
 @pytest.mark.parametrize("filelines, correctness", [
@@ -326,7 +326,7 @@ def test_parse_output(parser_emptyfile, filelines, correctness):
     sc.filelines = filelines
 
     p._current_sym = sc.get_symbol()
-    assert p._parse_output() == correctness
+    assert p._parse_output()[0] == correctness
 
 
 @pytest.mark.parametrize("filelines, correctness", [
@@ -359,7 +359,7 @@ def test_parse_input(parser_emptyfile, filelines, correctness):
     sc = p._scanner
     sc.filelines = filelines
 
-    assert p._parse_input() == correctness
+    assert p._parse_input()[0] == correctness
 
 
 @pytest.mark.parametrize("filelines, correctness", [
@@ -395,7 +395,7 @@ def test_parse_connection(parser_emptyfile, filelines, correctness):
     sc.filelines = filelines
 
     p._current_sym = sc.get_symbol()
-    assert p._parse_connection() == correctness
+    assert p._parse_connection()[0] == correctness
 
 
 @pytest.mark.parametrize("filelines, correctness", [

@@ -123,7 +123,7 @@ class Parser:
         while self._current_sym.symtype not in [sym_t.KEYWORD, sym_t.EOF]:
             [status, device_kind, devices] = self._parse_device_def()
             ret =  status and ret
-            if ret == True:
+            if ret == True and self._syntax_err_cnt == 0:
                 for device_id, parameter in devices.items():
                     self._devices.make_device(device_id, device_kind, parameter)
             self._current_sym = self._scanner.get_symbol()
@@ -276,7 +276,7 @@ class Parser:
         while self._current_sym.symtype not in [KEYWORD, EOF]:
             [status, output, inputs] = self._parse_connection()
             ret = status and ret
-            if ret == True:
+            if ret == True and self._syntax_err_cnt == 0:
                 for output_device, output_port in output.items():
                     for pair in inputs:
                         self._network.make_connection(output_device, output_port, pair[0], pair[1])
@@ -429,7 +429,7 @@ class Parser:
             self._current_sym = self._scanner.get_symbol()
             [status, output_device_id, output_port_id] = self._parse_output()
             ret = status and ret
-            if ret == True:
+            if ret == True and self._syntax_err_cnt == 0:
                 self._monitors.make_monitor(output_device_id, output_port_id)
 
         #print(self._monitors.get_signal_names())

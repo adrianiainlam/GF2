@@ -274,8 +274,6 @@ class Parser:
 
         while self._current_sym.symtype not in [KEYWORD, EOF]:
             [status, output, inputs] = self._parse_connection()
-            #print(list(map(self._names.get_name_string, list(output.keys()))))
-            #print(list(map(self._names.get_name_string, list(inputs.keys()))))
             ret = status and ret
             if ret == True:
                 for output_device, output_port in output.items():

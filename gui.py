@@ -424,14 +424,17 @@ class Gui(wx.Frame):
         nr_non_mon=len(non_monitored_id_list)
         for i in range(nr_mon):                                                    #create list of names of monitors and showed/not showed on display from IDs
             monitor=monitored_id_list[i]
-            device_name=self.names.get_name_string(monitor[0])
-            port_name=self.names.get_name_string(monitor[1])
-            monitors_list.append([device_name+"."+port_name,True])                          #True for monitored 
+            #device_name=self.names.get_name_string(monitor[0])
+            #port_name=self.names.get_name_string(monitor[1])
+            #monitors_list.append([device_name+"."+port_name,True])                          #True for monitored
+            monitors_list.append([monitor,True])
+
         for i in range(nr_mon,nr_mon+nr_non_mon):
-            monitor=non_monitored_id_list[i]
-            device_name=self.names.get_name_string(monitor[0])
-            port_name=self.names.get_name_string(monitor[1])
-            monitors_list.append([device_name+"."+port_name,False])                         #False as it is not monitored
+            monitor=non_monitored_id_list[i - nr_mon]
+            #device_name=self.names.get_name_string(monitor[0])
+            #port_name=self.names.get_name_string(monitor[1])
+            #monitors_list.append([device_name+"."+port_name,False])                         #False as it is not monitored
+            monitors_list.append([monitor, False])
 
         monitors_list=sorted(monitors_list)
                                                                                 #create monitor checklistbox
@@ -445,24 +448,27 @@ class Gui(wx.Frame):
 
         for i in range(len(monitors_list)):                                   #initialise checked boxes
             if monitors_list[i][1]:
-                self.monitors_checklistbox.SetCheckedStrings(monitors_list[i][0])
+                self.monitors_checklistbox.SetCheckedStrings([monitors_list[i][0]])
 
 
         switches_id_list=[x for x in self.devices.devices_list if x.device_kind==devices.SWITCH]                                     #SWITCHES UI
         switches_list=[]
         for i in range(len(switches_id_list)):
             switch=switches_id_list[i]
-            switch_state=self.devices.get_device(switch).switch_state
-            self.switches_list.append(switch,False if switch_state==devices.LOW else True)
+            #switch_state=self.devices.get_device(switch).switch_state
+            switch_state = switch.switch_state
+            switches_list.append([switch,False if switch_state==devices.LOW else True])
 
-        switches_list=sorted(switches_list)
+        #switches_list=sorted(switches_list)
         choices_list=[x for [x,y] in switches_list]
         column_number=0
         column_range=6
         row_sizer = wx.BoxSizer(wx.HORIZONTAL) 
         for s in range(len(switches_list)):                                #Setup checkboxes for switches
             column_number=column_number+1
-            self.checkbox = wx.CheckBox(self,label=choices_list[s], name=choices_list[s])
+            label = self.names.get_name_string(choices_list[s].device_id)
+            #self.checkbox = wx.CheckBox(self,label=choices_list[s], name=choices_list[s])
+            self.checkbox = wx.CheckBox(self,label=label, name=label)
             self.checkbox.SetValue(switches_list[s][1])
             row_sizer.Add(self.checkbox, 0, wx.ALL, 5)
             if (column_number==column_range and s!=(len(switches_list)-1)):

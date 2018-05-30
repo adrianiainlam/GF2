@@ -44,8 +44,17 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     on_mouse(self, event): Handles mouse events.
 
-    render_text(self, text, x_pos, y_pos): Handles text drawing
-                                           operations.
+    render_text(self, text, x_pos, y_pos): Handles text drawing operations.
+
+    draw_signal(self, signal_list, x_start, x_step, y_low, y_high):
+    Draws one signal onto the canvas.
+
+    def draw_all_signals(self): Draws all signals, together with their labels, 
+                                axes, and other decorations.
+
+    draw_time_axis(self, max_sig_len, x_step, init_orig):
+    Draws a time axis above the first signal.
+
     """
 
     def __init__(self, parent, devices, monitors):
@@ -65,8 +74,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Initialise variables for panning
         self.pan_x = 0
         self.pan_y = 0
-        self.last_mouse_x = 0  # previous mouse x position
-        self.last_mouse_y = 0  # previous mouse y position
+        self.last_mouse_x = 0  # Previous mouse x position
+        self.last_mouse_y = 0  # Previous mouse y position
 
         # Initialise variables for zooming
         self.zoom = 1
@@ -104,7 +113,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         y_low: y-coordinate of a LOW level signal.
         y_high: y-coordinate of a HIGH level signal.
         """
-        GL.glColor3f(0.0, 0.0, 1.0)  # blue
+        GL.glColor3f(0.0, 0.0, 1.0)  # Blue
         GL.glBegin(GL.GL_LINE_STRIP)
         prev_sig_blank = False
         x = x_start
@@ -179,16 +188,16 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             y_low = current_orig['y']
             y_high = y_low + y_high_low_diff
 
-            # label monitor name and signal levels
+            # Label monitor name and signal levels
             self.render_text('hi', x - 20, y_high - 3)
             self.render_text('lo', x - 20, y_low - 3)
             self.render_text(monitor_name, x, y_low - 18)
 
-            # then draw signal traces
+            # Then draw signal traces
             self.draw_signal(signal_list, x, x_step, y_low, y_high)
             current_orig['y'] += y_sig_sep
 
-        # now draw a time axis on top
+        # Now draw a time axis on top
         if max_sig_len != 0:
             self.draw_time_axis(max_sig_len, x_step, init_orig)
 
@@ -245,7 +254,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             GL.glVertex2f(tick_xpos, arrow_start['y'] + 3)
             GL.glEnd()
 
-            # adjustment for tick label: shift label slightly
+            # Adjustment for tick label: shift label slightly
             # to the left, depending on how many characters in
             # the label, such that the middle of the label is
             # approx right on top of the tick
@@ -275,7 +284,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         ypos_transformed = (10 - self.pan_y) / self.zoom
         self.render_text(self.msg, xpos_transformed, ypos_transformed)
 
-        # now draw the signals
+        # Now draw the signals
         self.draw_all_signals()
 
         # We have been drawing to the back buffer, flush the graphics pipeline
@@ -319,11 +328,11 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             self.zoom /= (1.0 - (
                 event.GetWheelRotation() / (20 * event.GetWheelDelta())))
             self.init = False
-        self.Refresh()  # triggers the paint event
+        self.Refresh()  # Triggers the paint event
 
     def render_text(self, text, x_pos, y_pos):
         """Handle text drawing operations."""
-        GL.glColor3f(0.0, 0.0, 0.0)  # text is black
+        GL.glColor3f(0.0, 0.0, 0.0)  # Text is black
         GL.glRasterPos2f(x_pos, y_pos)
         font = GLUT.GLUT_BITMAP_HELVETICA_12
 
@@ -332,7 +341,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 y_pos = y_pos - 20
                 GL.glRasterPos2f(x_pos, y_pos)
             else:
-                GLUT.glutBitmapCharacter(font, ord(character)) #ord(character) returns the ascii number corresponding to the string
+                GLUT.glutBitmapCharacter(font, ord(character)) 
 
 
 class Gui(wx.Frame):
@@ -349,26 +358,43 @@ class Gui(wx.Frame):
     --------------
     on_menu(self, event): Event handler for the file menu.
 
-    on_spin(self, event): Event handler for when the user changes the spin
-                           control value.
+    on_spin(self, event): Event handler for when the user changes the spin 
+                          control value.
 
-    on_run_button(self, event): Event handler for when the user clicks the run
-                                button.
+    on_run(self, event): Event handler for when the user clicks the run button.
 
-    on_text_box(self, event): Event handler for when the user enters text.
+    on_continue(self, event): Event handler for when the user clicks the 
+                              continue button.
+
+    on_restart(self, event): Event handler for when the user clicks the 
+                             continue button.
+
+    on_checkbox(self,event): Event handler for when the user checks or unchecks
+                             a checkbox.
+
+    on_checklist(self,event): Event handler for when the user checks or 
+                              unchecksan element of the checkboxlist.
+
+    on_retrieve(self,event): Event handler for when the user clicks the 
+                             retrieve button.
+
+    run_network(self, cycles): Function running the network for the specified 
+                               number of simulation cycles.  
+
     """
 
     def __init__(self, title, path, names, devices, network, monitors):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title, size=(800, 600))
 
-        self.monitors=monitors                      #making devices, names and network global varibales
+        # Creating global variables
+        self.monitors=monitors                      
         self.devices=devices
         self.names=names
-        self.network = network
+        self.network=network
         self.cycles_completed=0
 
-        # Configure the file menu
+        # Create and setup the file menu
         fileMenu = wx.Menu()
         menuBar = wx.MenuBar()
         fileMenu.Append(wx.ID_ABOUT, "&About")
@@ -377,25 +403,26 @@ class Gui(wx.Frame):
         self.SetMenuBar(menuBar)
         self.Bind(wx.EVT_MENU, self.on_menu)
 
-        #MY CODE FROM HERE ONWARDS
-        
-        self.cycles_text = wx.StaticText(self, wx.ID_ANY, "Nr of cycles")              #CREATION AND INIT OF UI ELEMENTS
+        # Create UI elements and init
+        self.cycles_text = wx.StaticText(self, wx.ID_ANY, "Nr of cycles")              
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")              
         self.run_button = wx.Button(self, wx.ID_ANY, "Run")         
         self.continue_button = wx.Button(self, wx.ID_ANY, "Continue") 
         self.restart_button = wx.Button(self, wx.ID_ANY, "Restart")        
-        self.switches_text = wx.StaticText(self, wx.ID_ANY, "Switches (closed is ticked)")  
+        self.switches_text = wx.StaticText(self, wx.ID_ANY, "Switches")  
 
-        self.continue_button.Disable()                                          #init of continue button                                  
+        self.continue_button.Disable()              # Init of continue button                                  
 
         self.canvas = MyGLCanvas(self, devices, monitors)
 
-        main_sizer = wx.BoxSizer(wx.HORIZONTAL)                                 #SIZERS
+        # Creating sizers 
+        main_sizer = wx.BoxSizer(wx.HORIZONTAL)                                 
         side_sizer = wx.BoxSizer(wx.VERTICAL)
         switches_sizer = wx.BoxSizer(wx.VERTICAL)
         buttons_sizer=wx.BoxSizer(wx.HORIZONTAL)
         
-        main_sizer.Add(self.canvas, 5, wx.EXPAND | wx.ALL, 5)                   #Assignement of sizer hierarchy and elements
+        # Setting hierarchy of sizers and UI elements
+        main_sizer.Add(self.canvas, 5, wx.EXPAND | wx.ALL, 5)                
         main_sizer.Add(side_sizer, 1, wx.ALL, 5)
         side_sizer.Add(self.cycles_text, 1, wx.TOP, 10)
         side_sizer.Add(self.spin, 1, wx.ALL, 5)
@@ -406,11 +433,11 @@ class Gui(wx.Frame):
         side_sizer.Add(self.switches_text)
         side_sizer.Add(switches_sizer, 1, wx.ALL, 5)
 
-        # MONITORS UI
+        # Starting monitors UI
+        # Retrieve and create names list of showed/hidden monitors. 
         [monitored_name_list, non_monitored_name_list] \
-            = monitors.get_signal_names()
+            = self.monitors.get_signal_names()
         monitors_list = []
-        # create list of names of monitors and showed/not showed on display
         for mon_name in monitored_name_list:
             monitors_list.append([mon_name, True])
         for mon_name in non_monitored_name_list:
@@ -426,32 +453,38 @@ class Gui(wx.Frame):
         from distutils.version import LooseVersion
         monitors_list = sorted(monitors_list, key=lambda mon_status:
                                LooseVersion(mon_status[0]))
-                                                                                #create monitor checklistbox
-        length_checklistbox=len(monitors_list)*21                                           #estimate length of CheckListBox
-        width_checklistbox= max([len(i) for i in monitors_list])*9+120          #                    #estimate width of CheckListBox
-        size_checklistbox=wx.Size(min((width_checklistbox),300),min(length_checklistbox,250))
         choices_list=[x for [x,y] in monitors_list]
-        self.monitors_checklistbox=wx.CheckListBox(self,choices=choices_list,size=size_checklistbox)
+
+        # Setup parameters and create monitors CheckListBox
+        # Estimate length, width and create size of CheckListBox
+        length_checklistbox=min(len(choices_list)*21,250)                          
+        width_checklistbox=min((max([len(i) for i in choices_list])*9+120),300)
+        size_checklistbox=wx.Size(width_checklistbox,length_checklistbox)
+        self.monitors_checklistbox=wx.CheckListBox(self,choices=choices_list, \
+                                                   size=size_checklistbox)
         side_sizer.Add(self.monitors_checklistbox)
         self.monitors_checklistbox.Enable()
 
+        # Setting which switches are checked
         checked_strings = [x[0] for x in monitors_list if x[1]]
         self.monitors_checklistbox.SetCheckedStrings(checked_strings)
 
-        # SWITCHES UI
+        # Starting switches UI
+        # Preparing switches name list and other parameters.
         switches_list = [x for x in self.devices.devices_list
-                         if x.device_kind == devices.SWITCH]
+                         if x.device_kind == self.devices.SWITCH]                    
         switches_state_list = []
         for switch in switches_list:
             switch_state = switch.switch_state
-            switches_state_list.append([switch, switch_state != devices.LOW])
-
+            switches_state_list.append([switch, 
+                                        switch_state != self.devices.LOW])
         switches_list = sorted(switches_list, key=lambda sw:
                                self.names.get_name_string(sw.device_id))
         choices_list = [x for [x, y] in switches_state_list]
-        column_number=0
-        column_range=6
+        column_number=0  # Counter for column index of current switch checkbox
+        column_range=6   # Parameter limiting the nr of checkboxes in a line
         row_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
         # Setup checkboxes for switches
         for s in range(len(switches_state_list)):
             column_number=column_number+1
@@ -466,47 +499,64 @@ class Gui(wx.Frame):
                 row_sizer=wx.BoxSizer(wx.HORIZONTAL) 
         switches_sizer.Add(row_sizer)
 
+        # Starting retrieve button UI
         retrieve_button = wx.Button(self,-1,"Open definition file")
         side_sizer.Add(retrieve_button,1,wx.TOP, 5)
         
-        self.Bind(wx.EVT_CHECKBOX, self.OnChecked)                              #EVENTS HANDLING
-        self.Bind(wx.EVT_CHECKLISTBOX, self.OnChecklist)
-        self.Bind(wx.EVT_BUTTON, self.OnGetData)
-        self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
-        self.continue_button.Bind(wx.EVT_BUTTON, self.on_continue_button)
-        self.restart_button.Bind(wx.EVT_BUTTON, self.on_restart_button)
-        retrieve_button.Bind(wx.EVT_BUTTON, self.open_circuit_file_in_editor)
+        # Setting events handling
+        self.Bind(wx.EVT_CHECKBOX, self.on_checkbox)                              
+        self.Bind(wx.EVT_CHECKLISTBOX, self.on_checklist)
+        self.run_button.Bind(wx.EVT_BUTTON, self.on_run)
+        self.continue_button.Bind(wx.EVT_BUTTON, self.on_continue)
+        self.restart_button.Bind(wx.EVT_BUTTON, self.on_restart)
+        retrieve_button.Bind(wx.EVT_BUTTON, self.on_retrieve)
 
         self.SetSizeHints(600, 600)
-        self.SetSizer(main_sizer)
-                                                                     #DEFINITION OF FUNCTIONS AND EVENTS
-    def OnChecked(self,event):        
+        self.SetSizer(main_sizer) 
+    
+    def on_checkbox(self,event):  
+        """Handle the event when the user checks or unchecks a checkbox.
+        
+        The event will set the selected switch on the opened/closed state."""  
+        # Retrieving name and ID of the checkbox checked/unchecked.   
         clicked = event.GetEventObject()
-        # print(clicked.GetName())
-        # print(event.IsChecked()*1) 
         switch_name = clicked.GetName()
         switch_id=self.names.query(switch_name)
-        switch_state = (self.devices.LOW if event.IsChecked()==False else self.devices.HIGH) 
+
+        # Setting switch state using the devices method.
+        switch_state = (self.devices.LOW if event.IsChecked()==False \
+                        else self.devices.HIGH) 
         if self.devices.set_switch(switch_id,switch_state):
-            self.canvas.render("Successfully set switch.")
+            self.canvas.render("Successfully set switch on "+ (
+                               "open" if event.IsChecked()==False \
+                               else "closed"))
         else:
             self.canvas.render("Error! Invalid switch.")
 
 
-    def OnChecklist(self,event):          #this is probably going to be useless in the final implementation
+    def on_checklist(self,event):   
+        """
+        Handle the event when the user checks/unchecks an element of the 
+        checkboxlist.
+        
+        The event will show or hide an output from the monitor."""
+
+        # Retrieving name of the list element checked/unchecked    
         clicked = event.GetEventObject()
-        device_string=event.GetString()
+        device_string=event.GetString()                                         
         index = event.GetInt()
-        # print(device)
-        # print(clicked.IsChecked(index)*1) 
         [device,port]=device_string.split(".") if \
                         "." in device_string else \
                         (device_string, "")
-        device_id = self.names.query(device)
+
+        # Preparing IDs to feed to the monitors methods
+        device_id = self.names.query(device)                                    
         port_id = self.names.query(port)
 
+        # Monitor operations and methods
         if (clicked.IsChecked(index)):
-            monitor_error = self.monitors.make_monitor(device_id, port_id, self.cycles_completed)
+            monitor_error = self.monitors.make_monitor(device_id, port_id,
+                                                       self.cycles_completed)
             if monitor_error == self.monitors.NO_ERROR:
                 self.canvas.render("Successfully made monitor.")
             else:
@@ -517,17 +567,7 @@ class Gui(wx.Frame):
             else:
                 self.canvas.render("Error! Could not zap monitor.")
 
-
-    def on_menu(self, event):                                   
-        """Handle the event when the user selects a menu item."""
-        Id = event.GetId()
-        if Id == wx.ID_EXIT:
-            self.Close(True)
-        if Id == wx.ID_ABOUT:
-            wx.MessageBox("Logic Simulator\nCreated by S. Arulselvan, F. Freddi, A. I. Lam\n2018",
-                          "About Logsim", wx.ICON_INFORMATION | wx.OK)
-
-    def run_network(self, cycles):            # used for on_run_button and on_continue_button
+    def run_network(self, cycles):                                              
         """Run the network for the specified number of simulation cycles.
 
         Return True if successful.
@@ -542,92 +582,69 @@ class Gui(wx.Frame):
         self.canvas.render("Ran for %d cycles." % cycles)
         return True
 
-    def on_run_button(self, event):
+    def on_run(self, event):
         """Handle the event when the user clicks the run button."""
         self.cycles_completed = 0
         cycles = self.spin.GetValue()
         if cycles is not None:
-            self.continue_button.Enable()                       # handling interactions
+            # Handling gui interactions
+            self.continue_button.Enable()                       
             self.monitors_checklistbox.Disable() 
         
-            self.monitors.reset_monitors()                    # if the number of cycles provided is valid
+            # Reset output, print new running network and update nr cycles.
+            self.monitors.reset_monitors()                      
             self.devices.cold_startup()
-            if self.run_network(cycles):
-                self.cycles_completed += cycles
+            if self.run_network(cycles):                        
+                self.cycles_completed += cycles            
     
-    def on_continue_button(self, event):
+    def on_continue(self, event):
         """Handle the event when the user clicks the continue button."""
-        self.monitors_checklistbox.Disable()
+        # Handling gui interactions
+        self.monitors_checklistbox.Disable()                    
 
+        # Print continued network and update nr of cycles if successful.
         cycles = self.spin.GetValue()
-        if cycles is not None:  
-            if self.run_network(cycles):
-                self.cycles_completed += cycles
+        if cycles is not None:                                  
+            if self.run_network(cycles):                       
+                self.cycles_completed += cycles                
                 self.canvas.render("Continued for %d cycles. Total: %d" %
                                    (cycles, self.cycles_completed))
 
-    def on_restart_button(self, event):
+    def on_restart(self, event):
         """Handle the event when the user clicks the restart button."""
-        self.monitors_checklistbox.Enable()
+        # Handling gui interactions
+        self.monitors_checklistbox.Enable()                     
         self.continue_button.Disable()
 
-        self.monitors.reset_monitors()
+        # Resetting monitors and parameters
+        self.monitors.reset_monitors()                          
         self.cycles_completed=0
         self.spin.SetValue(10)
 
-        self.canvas.init = False  # force canvas to re-init positions etc
+        # Force canvas to re-init positions etc.
+        self.canvas.init = False                                
         self.canvas.pan_x = self.canvas.pan_y = 0
         self.canvas.zoom = 1
         self.canvas.render("Restarted")
 
-    def open_circuit_file_in_editor(self, event):
-        """
-        We set a flag to indicate to logsim that the GUI is to be restarted.
-        Then we close the interface and allow logsim to start an editor.
-        Afterwards, logsim would restart the GUI.
-        """
+    def on_retrieve(self, event):
+        """Handle the event when the user clicks the retrieve button.
+        
+        This is used to open the definition file and allow modifications."""
+        # We set a flag to indicate to logsim that the GUI is to be restarted.
+        # Then we close the interface and allow logsim to start an editor.
+        # Afterwards, logsim would restart the GUI.
         self.edit_restart = True
         self.Close()
 
-
-
-
-
-
 # TESTING ONLY
-    def on_text_box(self, event):
-        """Handle the event when the user enters text."""
-        text_box_value = self.text_box.GetValue()
-        text = "".join(["New text box value: ", text_box_value])
-        self.canvas.render(text)
 
-    def OnGetData(self,event):          # used for TESTING but will not be used in final version
-        switches_dict = {}
-        switches_list = []
-        for i in self.switches_boxes:
-            if i.IsChecked():
-                n = i.GetName()
-                switches_dict[n]="Checked"
-                switches_list.append((n,"Checked"))
-        monitors_dict = {}
-        monitors_list = []
-        for n in self.monitors_checklistbox.GetCheckedStrings():    #or GetCheckedItems retirns index of the choices vector that is checked
-                monitors_dict[n]="Checked"
-                monitors_list.append((n,"Checked"))
-
-        print(switches_dict)
-        print(switches_list)
-        print(monitors_dict)
-        print(monitors_list)
-
-    def on_spin(self, event):                              # used for TESTING but not in final version of code
-        """Handle the event when the user changes the spin control value."""
-        spin_value = self.spin.GetValue()
-        text = "".join(["New spin control value: ", str(int(spin_value))])
-        self.canvas.render(text)
-
-    def on_checkbox(self, event):
-        """Handle the event when the user enters text."""
-        checkbox_value = self.checkbox.GetValue()
-        text = "".join(["New checkbox value: ", str(checkbox_value)])
-        self.canvas.render(text)
+    def on_menu(self, event):                                   
+        """Handle the event when the user selects a menu item."""
+        Id = event.GetId()
+        if Id == wx.ID_EXIT:
+            self.Close(True)
+        if Id == wx.ID_ABOUT:
+            wx.MessageBox("Logic Simulator\nCreated by S. Arulselvan, \
+                           F. Freddi, A. I. Lam\n2018",
+                          "About Logsim", wx.ICON_INFORMATION | wx.OK)

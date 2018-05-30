@@ -47,10 +47,6 @@ def main(arg_list):
     devices = Devices(names)
     network = Network(names, devices)
     monitors = Monitors(names, devices, network)
-    # names = None
-    #devices = None
-    #network = None
-    #monitors = None
 
     for option, path in options:
         if option == "-h":  # print the usage message
@@ -88,7 +84,11 @@ def main(arg_list):
                 # to change the file, then restart the GUI.
                 del app
                 run_editor(path)
-                # Re-initialise scanning and parsing
+                # Re-initialise everything
+                names = Names()
+                devices = Devices(names)
+                network = Network(names, devices)
+                monitors = Monitors(names, devices, network)
                 scanner = Scanner(path, names)
                 parser = Parser(names, devices, network, monitors, scanner)
                 if parser.parse_network():

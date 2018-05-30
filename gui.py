@@ -268,12 +268,12 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         # Draw specified text at position (10, 10)
         # Draw message text at position (10, 10), keeping the same
-        # on-screen location even with panning.
-        # Ideally, its location should be the same even with zooming.
-        # This is not the case now. TODO figure out how to do this.
+        # on-screen location even with panning and zooming.
         if text is not None:
             self.msg = text
-        self.render_text(self.msg, 10 - self.pan_x, 10 - self.pan_y)
+        xpos_transformed = (10 - self.pan_x) / self.zoom
+        ypos_transformed = (10 - self.pan_y) / self.zoom
+        self.render_text(self.msg, xpos_transformed, ypos_transformed)
 
         # now draw the signals
         self.draw_all_signals()

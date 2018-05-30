@@ -2,7 +2,9 @@ import pytest
 from scanner import Symbol, Scanner
 from names import Names
 from parse import Parser
-
+from devices import Devices
+from network import Network
+from monitors import Monitors
 
 fulladderpath = "First report/examples/fulladder.circuit"
 ripplecounterpath = "First report/examples/ripplecounter.circuit"
@@ -14,21 +16,36 @@ def names():
 
 
 @pytest.fixture
-def parser_fulladder(names):
+def devices(names):
+    return Devices(names)
+
+
+@pytest.fixture
+def network(names, devices):
+    return Network(names, devices)
+
+
+@pytest.fixture
+def monitors(names, devices, network):
+    return Monitors(names, devices, network)
+
+
+@pytest.fixture
+def parser_fulladder(names, devices, network, monitors):
     sc = Scanner(fulladderpath, names)
-    return Parser(names, None, None, None, sc)
+    return Parser(names, devices, network, monitors, sc)
 
 
 @pytest.fixture
-def parser_ripplecounter(names):
+def parser_ripplecounter(names, devices, network, monitors):
     sc = Scanner(ripplecounterpath, names)
-    return Parser(names, None, None, None, sc)
+    return Parser(names, devices, network, monitors, sc)
 
 
 @pytest.fixture
-def parser_emptyfile(names):
+def parser_emptyfile(names, devices, network, monitors):
     sc = Scanner("/dev/null", names)
-    return Parser(names, None, None, None, sc)
+    return Parser(names, devices, network, monitors, sc)
 
 
 # The main testing strategy for now would be to inject different
@@ -126,7 +143,7 @@ def test_parse_device(parser_emptyfile, filelines, correctness):
     sc = p._scanner
     sc.filelines = filelines
 
-    assert p._parse_device() == correctness
+    assert p._parse_device()[0] == correctness
 
 
 @pytest.mark.parametrize("filelines, correctness", [
@@ -187,7 +204,7 @@ DEVICE
 CONNECT
 """
         ), True),
-    (["device"], False),  # lowercase keyword
+    (["device"], None),  # lowercase keyword
     (["DEVICE xor"], False),  # lowercase type name
     (sp("""
 DEVICE
@@ -293,7 +310,13 @@ def test_parse_device_list(parser_emptyfile, filelines, correctness):
     sc = p._scanner
     sc.filelines = filelines
 
-    assert p._parse_device_list() == correctness
+    if correctness is not None:
+        assert p._parse_device_list() == correctness
+    else:
+        # None is used to denote the program should terminate with error
+        with pytest.raises(SystemExit) as e:
+            p._parse_device_list()
+        assert e.value.code != 0
 
 
 @pytest.mark.parametrize("filelines, correctness", [
@@ -326,6 +349,7 @@ def test_parse_output(parser_emptyfile, filelines, correctness):
     sc.filelines = filelines
 
     p._current_sym = sc.get_symbol()
+
     assert p._parse_output()[0] == correctness
 
 
@@ -416,7 +440,7 @@ MONITOR
 """
         ), True),
     (["CONNECT"], False),
-    (["MONITOR MONITOR"], False),
+    (["MONITOR MONITOR"], None),
     (["CONNECT a1 -> a2.I1;"], False),
     (sp("""
 CONNECT
@@ -432,7 +456,12 @@ def test_parse_connect_list(parser_emptyfile, filelines, correctness):
     sc.filelines = filelines
 
     p._current_sym = sc.get_symbol()
-    assert p._parse_connect_list() == correctness
+    if correctness is not None:
+        assert p._parse_connect_list() == correctness
+    else:
+        with pytest.raises(SystemExit) as e:
+            p._parse_connect_list()
+        assert e.value.code != 0
 
 
 # Parser._parse_monitor_list() only parses until no more comma, and
@@ -447,10 +476,10 @@ def test_parse_connect_list(parser_emptyfile, filelines, correctness):
     (["MONITOR a1"], False),
     (["MONITOR END"], False),
     (["MONITOR DEVICE END"], False),
-    ([""], False),
+    ([""], None),
     (["MONITOR a1, dff. END"], False),
     (["MONITOR a1, a2"], False),
-    (["CONNECT a1 -> a2.I1;"], False),
+    (["CONNECT a1 -> a2.I1;"], None),
     (["MONITOR"], False)
 ])
 def test_parse_monitor_list(parser_emptyfile, filelines, correctness):
@@ -459,15 +488,25 @@ def test_parse_monitor_list(parser_emptyfile, filelines, correctness):
     sc.filelines = filelines
 
     p._current_sym = sc.get_symbol()
-    assert p._parse_monitor_list() == correctness
+    if correctness is not None:
+        assert p._parse_monitor_list() == correctness
+    else:
+        with pytest.raises(SystemExit) as e:
+            p._parse_monitor_list()
+        assert e.value.code != 0
 
 
 # final syntax correctness tests
 @pytest.mark.parametrize("parser_str, correctness", [
     ('parser_fulladder', True),
-    ('parser_ripplecounter', True),
-    ('parser_emptyfile', False)
+    ('parser_ripplecounter', True)
 ])
 def test_final_syntax_correctness(parser_str, correctness, request):
     p = request.getfixturevalue(parser_str)
     assert p.parse_network() == correctness
+
+
+def test_empty_file(parser_emptyfile):
+    with pytest.raises(SystemExit) as e:
+        parser_emptyfile.parse_network()
+    assert e.value.code != 0

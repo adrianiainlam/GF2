@@ -151,7 +151,8 @@ class Parser:
         named_devices = {}
 
         [device_status, device] = self._parse_device()
-        named_devices.update(device)
+        if device_status:
+            named_devices.update(device)
         ret = device_status and ret
 
         while self._current_sym.symtype == COMMA:

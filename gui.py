@@ -410,6 +410,8 @@ class Gui(wx.Frame):
         self.continue_button = wx.Button(self, wx.ID_ANY, "Continue")
         self.restart_button = wx.Button(self, wx.ID_ANY, "Restart")
         self.switches_text = wx.StaticText(self, wx.ID_ANY, "Switches")
+        self.monitors_text = wx.StaticText(self, wx.ID_ANY,
+                                           "Monitored Outputs")
 
         self.continue_button.Disable()              # Init of continue button
 
@@ -432,6 +434,7 @@ class Gui(wx.Frame):
         side_sizer.Add(self.restart_button, 1, wx.ALL, 5)
         side_sizer.Add(self.switches_text)
         side_sizer.Add(switches_sizer, 1, wx.ALL, 5)
+        side_sizer.Add(self.monitors_text, 1, wx.TOP, 10)
 
         # Starting monitors UI
         # Retrieve and create names list of showed/hidden monitors.
@@ -484,7 +487,7 @@ class Gui(wx.Frame):
                                self.names.get_name_string(sw.device_id))
         choices_list = [x for [x, y] in switches_state_list]
         column_number = 0  # Counter for column index of switch checkbox
-        column_range = 6  # Parameter limiting the nr of checkboxes in a line
+        column_range = 4  # Parameter limiting the nr of checkboxes in a line
         row_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         # Setup checkboxes for switches
@@ -637,8 +640,6 @@ class Gui(wx.Frame):
         self.edit_restart = True
         self.Close()
 
-# TESTING ONLY
-
     def on_menu(self, event):
         """Handle the event when the user selects a menu item."""
         Id = event.GetId()
@@ -646,5 +647,4 @@ class Gui(wx.Frame):
             self.Close(True)
         if Id == wx.ID_ABOUT:
             wx.MessageBox("Logic Simulator\nCreated by S. Arulselvan, \
-                           F. Freddi, A. I. Lam\n2018",
-                          "About Logsim", wx.ICON_INFORMATION | wx.OK)
+F. Freddi, A. I. Lam\n2018", "About Logsim", wx.ICON_INFORMATION | wx.OK)

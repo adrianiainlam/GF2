@@ -10,6 +10,11 @@ fulladderpath = "First report/examples/fulladder.circuit"
 ripplecounterpath = "First report/examples/ripplecounter.circuit"
 
 
+# This is only a syntax check, we override semantic error-reporting
+# functions in devices, network and monitor with dummy functions that
+# always return NO_ERROR.
+
+
 @pytest.fixture
 def names():
     return Names()
@@ -17,17 +22,24 @@ def names():
 
 @pytest.fixture
 def devices(names):
-    return Devices(names)
+    dev = Devices(names)
+    dev.make_device = lambda a, b, c=None: dev.NO_ERROR
+    return dev
 
 
 @pytest.fixture
 def network(names, devices):
-    return Network(names, devices)
+    nw = Network(names, devices)
+    nw.make_connection = lambda a, b, c, d: nw.NO_ERROR
+    nw.check_network = lambda: True
+    return nw
 
 
 @pytest.fixture
 def monitors(names, devices, network):
-    return Monitors(names, devices, network)
+    mon = Monitors(names, devices, network)
+    mon.make_monitor = lambda a, b, c=0: mon.NO_ERROR
+    return mon
 
 
 @pytest.fixture

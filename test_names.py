@@ -1,3 +1,6 @@
+"""Test file used in pytest to test the names module"""
+
+
 import pytest
 from names import Names
 

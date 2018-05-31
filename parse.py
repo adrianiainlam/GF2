@@ -103,7 +103,9 @@ class Parser:
 
         #final semantic check on network
         network_ok = self._network.check_network()
-        if not network_ok:
+        #additional check on self._err_cnt so that message is only displayed if
+        #it is the only error
+        if not network_ok and self._err_cnt == 0:
             self.display_error(self.INPUTS_NOT_CONNECTED, self.stopping_symbols["EOF"])
         ret = network_ok and ret
 
@@ -556,9 +558,7 @@ class Parser:
             print("SemanticError: Both ports are inputs")
         elif error_type == self._network.PORT_ABSENT:
             print("SemanticError: Invalid input/output port used")
-        elif error_type == self._network.INPUT_CONNECTED:
-            print("SemanticError: Input is already in a connection")
-        elif error_type == self.INPUTS_NOT_CONNECTED:
+        elif error_type == self.INPUTS_NOT_CONNECTED and self._err_cnt == 1:
             print("SemanticError: Not all inputs are connected")
 
         # Now addressing monitoring errors

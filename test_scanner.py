@@ -241,7 +241,11 @@ def test_scanner_get_name(scanner_emptyfile):
     (['   \n'], 0, 4),
     (['   \n', 's'], 1, 1),
     (['# s \n', '   \n', ' \ts'], 2, 3),
-    (['s \n', '###'], 0, 1)
+    (['s \n', '###'], 0, 1),
+    (['# comment line 1\n', '# comment line 2\n', 'DEVICE\n'], 2, 1),
+    (['# comment\n', '  # indented comment\n', 'DEVICE\n'], 2, 1),
+    (['  # indented comment\n', '#comment\n', 'DEVICE\n'], 2, 1),
+    (['  #indented\n', '   #indented\n', 'DEVICE\n'], 2, 1)
 ])
 def test_scanner_skip_to_next_symbol(scanner_emptyfile, filelines,
                                      linenum, colnum):

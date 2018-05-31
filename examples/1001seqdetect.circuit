@@ -1,0 +1,53 @@
+# This circuit detects non-overlapping sequences of "1001", received
+# e.g. from a serial data link.
+# Note that each bit must last for 2 * clock half period. Here
+# the clock half period is 1, hence the bit must last for 2 cycles.
+# It demonstrates interfacing D-type flip-flops with logic gates,
+# and, while unrelated to sequence detection, also demonstrates
+# the behaviour of allowing the user to manually alter the SET
+# and CLEAR inputs to the flip-flops.
+
+DEVICE
+    CLOCK ck(1);
+    SWITCH data(0);
+    DTYPE dff1, dff2;
+    AND and1, and2, and3, and4, and5;
+    OR or1, or2;
+    XOR xor1;
+    NAND notdata(1);
+
+    SWITCH set1(0), clear1(0), set2(0), clear2(0);
+
+CONNECT
+    data -> notdata.I1;
+
+    ck -> dff1.CLK, dff2.CLK;
+    set1 -> dff1.SET;
+    clear1 -> dff1.CLEAR;
+    set2 -> dff2.SET;
+    clear2 -> dff2.CLEAR;
+
+    dff1.Q -> and1.I1;
+    notdata -> and1.I2;
+    and1 -> or1.I1;
+    dff2.Q -> and2.I1;
+    dff1.QBAR -> and2.I2;
+    and2 -> or1.I2;
+    or1 -> dff2.DATA;
+
+    dff1.QBAR -> and3.I1;
+    notdata -> and3.I2;
+    and3 -> or2.I1;
+    dff2.Q -> and4.I1;
+    data -> xor1.I1;
+    dff1.Q -> xor1.I2;
+    xor1 -> and4.I2;
+    and4 -> or2.I2;
+    or2 -> dff1.DATA;
+
+    and2 -> and5.I1;
+    data -> and5.I2;
+
+MONITOR
+    data, and5
+END

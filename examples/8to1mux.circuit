@@ -1,0 +1,91 @@
+# An 8-to-1 multiplexer.
+# This example file aims to demonstrate and test the behaviour of
+# logic gates with different number of inputs.
+# We have used gates with 1 input (NAND as an inverter),
+# 2 inputs (declared implicitly, but can also be done explicitly),
+# 3 input, and also 8 inputs.
+
+DEVICE
+    # The select lines are now set to clocks at different periods.
+    # To change to manual selection, uncomment the following SWITCH
+    # line, and comment the CLOCK line.
+    
+    # SWITCH sel2(0), sel1(0), sel0(0);
+    CLOCK sel2(4), sel1(2), sel0(1);
+    
+    SWITCH i7(0), i6(0), i5(0), i4(0), i3(0), i2(0), i1(0), i0(0);
+    NAND notsel2(1), notsel1(1), notsel0(1);
+    AND addr7(3), addr6(3), addr5(3), addr4(3),
+        addr3(3), addr2(3), addr1(3), addr0(3);
+    AND i7sel, i6sel, i5sel, i4sel, i3sel, i2sel, i1sel;
+    AND i0sel(2);  # demonstrate explicit parameter declaration
+    OR output(8);
+CONNECT
+    # construct negated select lines
+    sel2 -> notsel2.I1;
+    sel1 -> notsel1.I1;
+    sel0 -> notsel0.I1;
+
+    # construct address lines
+    sel2 -> addr7.I1;
+    sel1 -> addr7.I2;
+    sel0 -> addr7.I3;
+
+    sel2 -> addr6.I1;
+    sel1 -> addr6.I2;
+    notsel0 -> addr6.I3;
+
+    sel2 -> addr5.I1;
+    notsel1 -> addr5.I2;
+    sel0 -> addr5.I3;
+
+    sel2 -> addr4.I1;
+    notsel1 -> addr4.I2;
+    notsel0 -> addr4.I3;
+
+    notsel2 -> addr3.I1;
+    sel1 -> addr3.I2;
+    sel0 -> addr3.I3;
+
+    notsel2 -> addr2.I1;
+    sel1 -> addr2.I2;
+    notsel0 -> addr2.I3;
+
+    notsel2 -> addr1.I1;
+    notsel1 -> addr1.I2;
+    sel0 -> addr1.I3;
+
+    notsel2 -> addr0.I1;
+    notsel1 -> addr0.I2;
+    notsel0 -> addr0.I3;
+
+    # construct individual selections
+    addr7 -> i7sel.I1;
+    i7 -> i7sel.I2;
+    addr6 -> i6sel.I1;
+    i6 -> i6sel.I2;
+    addr5 -> i5sel.I1;
+    i5 -> i5sel.I2;
+    addr4 -> i4sel.I1;
+    i4 -> i4sel.I2;
+    addr3 -> i3sel.I1;
+    i3 -> i3sel.I2;
+    addr2 -> i2sel.I1;
+    i2 -> i2sel.I2;
+    addr1 -> i1sel.I1;
+    i1 -> i1sel.I2;
+    addr0 -> i0sel.I1;
+    i0 -> i0sel.I2;
+
+    # Get the final output
+    i7sel -> output.I7;
+    i6sel -> output.I6;
+    i5sel -> output.I5;
+    i4sel -> output.I4;
+    i3sel -> output.I3;
+    i2sel -> output.I2;
+    i1sel -> output.I1;
+    i0sel -> output.I8;
+MONITOR
+    output
+END

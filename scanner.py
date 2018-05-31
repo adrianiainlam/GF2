@@ -132,8 +132,8 @@ class Scanner:
             self._get_next_char()
             if isincomment:
                 if self._current_char in [self.comment_end, '']:
-                    isincomment = False
                     self._get_next_char()
+                    isincomment = (self._current_char == self.comment_start)
             else:
                 isincomment = (self._current_char == self.comment_start)
 

@@ -46,7 +46,7 @@ class Parser:
         self._scanner = scanner
 
         self._current_sym = None
-        self._syntax_err_cnt = 0  # TODO remember to update counter for
+        self._err_cnt = 0  # TODO remember to update counter for
                                   # each error!
 
         # Defining all error types now using names.unique_error_codes NEED TO UPDATE
@@ -91,7 +91,7 @@ class Parser:
             if self._current_sym.symtype != EOF:
                 self.display_error(self.NO_EOF,self.stopping_symbols["END"])
                 return False
-        #print(self._syntax_err_cnt)
+        #print(self._err_cnt)
         #print(self._network.check_network())
 
         return ret
@@ -123,9 +123,12 @@ class Parser:
         while self._current_sym.symtype not in [sym_t.KEYWORD, sym_t.EOF]:
             [status, device_kind, devices] = self._parse_device_def()
             ret =  status and ret
-            if ret == True and self._syntax_err_cnt == 0:
+            if ret == True and self._err_cnt == 0:
                 for device_id, parameter in devices.items():
-                    self._devices.make_device(device_id, device_kind, parameter)
+                    error_type = self._devices.make_device(device_id, device_kind, parameter)
+                    if error_type!=self._devices.NO_ERROR:
+                        self.display_error(error_type, self.stopping_symbols["BETWEEN"])
+
             self._current_sym = self._scanner.get_symbol()
 
         if self._current_sym.symtype == sym_t.EOF:
@@ -151,8 +154,7 @@ class Parser:
         named_devices = {}
 
         [device_status, device] = self._parse_device()
-        if device_status:
-            named_devices.update(device)
+        named_devices.update(device)
         ret = device_status and ret
 
         while self._current_sym.symtype == COMMA:
@@ -275,11 +277,15 @@ class Parser:
 
         while self._current_sym.symtype not in [KEYWORD, EOF]:
             [status, output, inputs] = self._parse_connection()
+            #print(list(map(self._names.get_name_string, list(output.keys()))))
+            #print(list(map(self._names.get_name_string, list(inputs.keys()))))
             ret = status and ret
-            if ret == True and self._syntax_err_cnt == 0:
+            if ret == True and self._err_cnt == 0:
                 for output_device, output_port in output.items():
                     for pair in inputs:
-                        self._network.make_connection(output_device, output_port, pair[0], pair[1])
+                        error_type = self._network.make_connection(output_device, output_port, pair[0], pair[1])
+                        if error_type!=self._network.NO_ERROR:
+                            self.display_error(error_type, self.stopping_symbols["BETWEEN"])
             self._current_sym = self._scanner.get_symbol()
 
 
@@ -422,15 +428,20 @@ class Parser:
 
         [status, output_device_id, output_port_id] = self._parse_output()
         ret = status and ret
-        if ret == True:
-            self._monitors.make_monitor(output_device_id, output_port_id)
+        if ret == True and self._err_cnt == 0:
+            error_type = self._monitors.make_monitor(output_device_id, output_port_id)
+            if error_type!=self._monitors.NO_ERROR:
+                self.display_error(error_type, self.stopping_symbols["BETWEEN"])
+
 
         while self._current_sym.symtype == COMMA:
             self._current_sym = self._scanner.get_symbol()
             [status, output_device_id, output_port_id] = self._parse_output()
             ret = status and ret
-            if ret == True and self._syntax_err_cnt == 0:
-                self._monitors.make_monitor(output_device_id, output_port_id)
+            if ret == True and self._err_cnt == 0:
+                error_type = self._monitors.make_monitor(output_device_id, output_port_id)
+                if error_type!=self._monitors.NO_ERROR:
+                    self.display_error(error_type, self.stopping_symbols["BETWEEN"])
 
         #print(self._monitors.get_signal_names())
         if self._current_sym.symtype == EOF:
@@ -439,7 +450,7 @@ class Parser:
 
     def display_error(self, error_type, stopping_symbols):
         #increase the error_counts
-        self._syntax_err_cnt += 1
+        self._err_cnt += 1
         #display standard traceback
         self.boilerplate_error()
         #various syntactic errors
@@ -477,6 +488,43 @@ class Parser:
             print("ConnectionError: Missing input operator \".\" ")
         elif error_type == self.NO_SEMI_COLON:
             print("FileError: Missing semi-colon to separate connections")
+
+
+        #Now addressing semantic errors:
+        #First make_device errors
+        elif error_type == self._devices.DEVICE_PRESENT:
+            print("SemanticError: Device has already been named")
+        elif error_type == self._devices.NO_QUALIFIER:
+            print("SemanticError: Device needs an inital state")
+        elif error_type == self._devices.INVALID_QUALIFIER:
+            print("SemanticError: Not a valid qualifier for device")
+        elif error_type == self._devices.QUALIFIER_PRESENT:
+            print("SemanticError: Device does not take a qualifier")
+        elif error_type == self._devices.BAD_DEVICE:
+            print("SemanticError: Not a valid device")
+
+        #Now make_connection errors
+        elif error_type == self._network.DEVICE_ABSENT:
+            print("SemanticError: Input or output device has not been named in DEVICES")
+        elif error_type == self._network.INPUT_CONNECTED:
+            print("SemanticError: Input is already in a connection")
+        elif error_type == self._network.INPUT_TO_INPUT:
+            print("SemanticError: Both ports are inputs")
+        elif error_type == self._network.PORT_ABSENT:
+            print("SemanticError: Invalid input/output port used")
+        elif error_type == self._network.INPUT_CONNECTED:
+            print("SemanticError: Input is already in a connection")
+
+        #Now addressing monitoring errors
+        elif error_type == self._network.DEVICE_ABSENT:
+            print("SemanticError: Output device has not been named in DEVICES")
+        elif error_type == self._monitors.NOT_OUTPUT:
+            print("SemanticError: Not a valid ouput to monitor")
+        elif error_type == self._monitors.MONITOR_PRESENT:
+            print("SemanticError: Signal is monitored more than once")
+
+
+
         while ((self._current_sym.symtype not in stopping_symbols) and (self._current_sym.symid not in stopping_symbols)):
 
               self._current_sym = self._scanner.get_symbol()

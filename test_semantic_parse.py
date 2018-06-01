@@ -1,3 +1,6 @@
+"""Test the semantic analysis components of the parse module."""
+
+
 import pytest
 from scanner import Symbol, Scanner
 from names import Names
@@ -84,4 +87,7 @@ def test_semantic_errors(bad_file, error_message, names, devices, network, monit
     parser.parse_network()
     captured = capsys.readouterr()
 
-    assert (error_message in captured.out)
+    try:
+        assert (error_message in captured.out)
+    except AttributeError:
+        assert (error_message in captured[0])

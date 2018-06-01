@@ -104,7 +104,7 @@ class Devices:
 
         self.devices_list = []
 
-        gate_strings = ["AND", "OR", "NAND", "NOR", "XOR"]
+        gate_strings = ["AND", "OR", "NAND", "NOR", "XOR", "NOT"]
         device_strings = ["CLOCK", "SWITCH", "DTYPE"]
         dtype_inputs = ["CLK", "SET", "CLEAR", "DATA"]
         dtype_outputs = ["Q", "QBAR"]
@@ -116,7 +116,7 @@ class Devices:
         self.signal_types = [self.LOW, self.HIGH, self.RISING,
                              self.FALLING, self.BLANK] = range(5)
         self.gate_types = [self.AND, self.OR, self.NAND, self.NOR,
-                           self.XOR] = self.names.lookup(gate_strings)
+                           self.XOR, self.NOT] = self.names.lookup(gate_strings)
         self.device_types = [self.CLOCK, self.SWITCH,
                              self.D_TYPE] = self.names.lookup(device_strings)
         self.dtype_input_ids = [self.CLK_ID, self.SET_ID, self.CLEAR_ID,
@@ -297,6 +297,7 @@ class Devices:
                 self.make_switch(device_id, device_property)
                 error_type = self.NO_ERROR
 
+
         elif device_kind == self.CLOCK:
             # Device property is the clock half period > 0
             if device_property is None:
@@ -315,6 +316,18 @@ class Devices:
                 else:
                     self.make_gate(device_id, device_kind, 2)
                     error_type = self.NO_ERROR
+
+            elif device_kind == self.NOT:
+                #making NOT gate by one input nand gate
+                device_kind = self.NAND
+                if device_property not in [None, 1]:
+                    error_type = self.QUALIFIER_PRESENT
+                else:
+                    device_property = 1
+                    self.make_gate(device_id, device_kind, device_property)
+                    error_type = self.NO_ERROR
+
+
             else:  # other gates
                 if device_property is None:
                     device_property = 2

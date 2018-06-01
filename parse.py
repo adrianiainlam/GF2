@@ -99,13 +99,20 @@ class Parser:
             if self._current_sym.symtype != EOF:
                 self.display_error(self.NO_EOF, self.stopping_symbols["END"])
                 return False
-        # print(self._err_cnt)
+
 
         #final semantic check on network
         network_ok = self._network.check_network()
-        if not network_ok:
+        #additional check on self._err_cnt so that message is only displayed if
+        #it is the only error
+        if not network_ok and self._err_cnt == 0:
             self.display_error(self.INPUTS_NOT_CONNECTED, self.stopping_symbols["EOF"])
         ret = network_ok and ret
+        if self._err_cnt>0:
+            if self._err_cnt == 1:
+                print("Total of:",self._err_cnt,"error found")
+            else:
+                print("Total of:",self._err_cnt,"errors found")
 
 
         return ret
@@ -500,7 +507,7 @@ class Parser:
         #keyword errors are treated more seriously and hence program exits upon
         #detection
         if error_type == self.NO_DEVICE:
-            print("KeywordError: expected keyeord \"DEVICE\" at start of file")
+            print("KeywordError: expected keyword \"DEVICE\" at start of file")
             exit(1)
         elif error_type == self.NO_END:
             print("KeywordError: expected keyword \"END\" at end of file")
@@ -556,9 +563,7 @@ class Parser:
             print("SemanticError: Both ports are inputs")
         elif error_type == self._network.PORT_ABSENT:
             print("SemanticError: Invalid input/output port used")
-        elif error_type == self._network.INPUT_CONNECTED:
-            print("SemanticError: Input is already in a connection")
-        elif error_type == self.INPUTS_NOT_CONNECTED:
+        elif error_type == self.INPUTS_NOT_CONNECTED and self._err_cnt == 1:
             print("SemanticError: Not all inputs are connected")
 
         # Now addressing monitoring errors

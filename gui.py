@@ -391,6 +391,12 @@ class Gui(wx.Frame):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title, size=(800, 600))
 
+        builtins.__dict__['_'] = wx.GetTranslation
+
+        loc = wx.Locale(wx.LANGUAGE_DEFAULT)
+        loc.AddCatalogLookupPathPrefix('locale')
+        loc.AddCatalog("LangDomain")
+
         # Creating global variables
         self.monitors = monitors
         self.devices = devices
@@ -579,7 +585,7 @@ class Gui(wx.Frame):
 
         Return True if successful.
         """
-        for _ in range(cycles):
+        for i in range(cycles):
             if self.network.execute_network():
                 self.monitors.record_signals()
             else:
@@ -650,5 +656,5 @@ class Gui(wx.Frame):
         if Id == wx.ID_EXIT:
             self.Close(True)
         if Id == wx.ID_ABOUT:
-            wx.MessageBox("Logic Simulator\nCreated by S. Arulselvan, \
-F. Freddi, A. I. Lam\n2018", "About Logsim", wx.ICON_INFORMATION | wx.OK)
+            wx.MessageBox(_("Logic Simulator")+"\n"+_("Created by")+" S. Arulselvan, \
+F. Freddi, A. I. Lam\n2018", _("About")+" Logsim", wx.ICON_INFORMATION | wx.OK)

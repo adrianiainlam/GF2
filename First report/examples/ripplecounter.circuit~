@@ -1,0 +1,21 @@
+# ripple counter
+DEVICE
+    DTYPE d1, d2, d3, d4;
+    CLOCK ck(2);
+    SWITCH gnd(0);
+CONNECT
+    gnd -> d1.SET, d1.CLEAR, d2.SET, d2.CLEAR, d3.SET, d3.CLEAR,
+           d4.SET, d4.CLEAR;
+
+    d1.QBAR -> d1.DATA;
+    d2.QBAR -> d2.DATA;
+    d3.QBAR -> d3.DATA;
+    d4.QBAR -> d4.DATA;
+
+    ck      -> d1.CLK;
+    d1.QBAR -> d2.CLK;
+    d2.QBAR -> d3.CLK;
+    d3.QBAR -> d4.CLK;
+MONITOR
+    d1.Q, d2.Q, d3.Q, d4.Q
+END

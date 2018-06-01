@@ -1,0 +1,162 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2012-04-07 10:49+Paris, Madrid (heure dété)\n"
+"PO-Revision-Date: 2018-06-01 13:35+0100\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 2.0.7\n"
+"Last-Translator: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: de_DE\n"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:28
+msgid "Close"
+msgstr "Schließen"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:29
+msgid "Close the application"
+msgstr "Schließen Sie die Anwendung"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:31
+msgid "&File"
+msgstr "&Datei"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:36
+msgid "Edit something"
+msgstr ""
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:37
+msgid "Edit an entry of something"
+msgstr ""
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:40
+msgid "&Edit"
+msgstr "Bearbeiten"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:45
+msgid "&About"
+msgstr "Über"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:46
+msgid "About the program"
+msgstr ""
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:48
+msgid "&Help"
+msgstr "Hilfe"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:58
+msgid "A nice label for the TextCtrl"
+msgstr ""
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:63
+msgid "a search control"
+msgstr ""
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:70
+msgid "Open a file dialog"
+msgstr ""
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Choose a file"
+msgstr ""
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Nr of cycles"
+msgstr "Anzahl der Zyklen"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Run"
+msgstr "Lauf"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Continue"
+msgstr "Fortsetzen"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Restart"
+msgstr "Neustart"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Switches"
+msgstr "Schalter"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Monitored Outputs"
+msgstr "Überwachte Ausgänge"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Open definition file"
+msgstr "Öffnen Sie die Definitionsdatei"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "open"
+msgstr "öffnen"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "closed"
+msgstr "geschlossen"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Successfully made monitor."
+msgstr "Erfolgreich gemacht Monitor."
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Error! Could not make monitor."
+msgstr "Error! Monitor konnte nicht erstellt werden."
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Successfully zapped monitor."
+msgstr "Monitor erfolgreich gecheckt."
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Error! Could not zap monitor."
+msgstr "Error! Der Monitor konnte nicht zappen."
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Error! Invalid switch."
+msgstr "Error! Ungültiger Schalter"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Error! Network oscillating."
+msgstr "Error! Netzwerk oszilliert."
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Ran for "
+msgstr "Rannte für "
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid " cycles."
+msgstr " zyklus"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Continued for "
+msgstr "Fortsetzung für "
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid " cycles. Total: "
+msgstr " zyklen. Gesamt: "
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Restarted"
+msgstr "Neu gestartet"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Logic Simulator"
+msgstr "Logiksimulator"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Created by"
+msgstr "Erstellt von"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "About"
+msgstr "Über"

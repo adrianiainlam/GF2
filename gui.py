@@ -18,6 +18,10 @@ from network import Network
 from monitors import Monitors
 from scanner import Scanner
 from parse import Parser
+import os
+
+
+import builtins
 
 
 class MyGLCanvas(wxcanvas.GLCanvas):
@@ -387,6 +391,39 @@ class Gui(wx.Frame):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title, size=(800, 600))
 
+        builtins.__dict__['_'] = wx.GetTranslation
+        self.supLang = {u"en": wx.LANGUAGE_ENGLISH,
+           u"fr": wx.LANGUAGE_FRENCH,
+           u"de": wx.LANGUAGE_GERMAN,
+        }
+        # we remove English as source code strings are in English
+        supportedLang = []
+        for l in self.supLang:
+            if l != u"en":
+                supportedLang.append(l)
+        
+        self.locale = None
+        wx.Locale.AddCatalogLookupPathPrefix('locale')
+        self.appName = "LogicSimulator"
+
+        sp = wx.StandardPaths.Get()
+        self.configLoc = sp.GetUserConfigDir()
+        self.configLoc = os.path.join(self.configLoc, self.appName)
+
+        if not os.path.exists(self.configLoc):
+            os.mkdir(self.configLoc)
+
+        self.appConfig = wx.FileConfig(appName=self.appName,
+                                       vendorName=u'who you wish',
+                                       localFilename=os.path.join(
+                                       self.configLoc, "AppConfig"))
+
+        if not self.appConfig.HasEntry(u'Language'):
+            # on first run we default to German
+            self.appConfig.Write(key=u'Language', value=u'fr')
+        
+        self.updateLanguage(self.appConfig.Read(u"Language"))
+
         # Creating global variables
         self.monitors = monitors
         self.devices = devices
@@ -397,21 +434,21 @@ class Gui(wx.Frame):
         # Create and setup the file menu
         fileMenu = wx.Menu()
         menuBar = wx.MenuBar()
-        fileMenu.Append(wx.ID_ABOUT, "&About")
-        fileMenu.Append(wx.ID_EXIT, "&Exit")
-        menuBar.Append(fileMenu, "&File")
+        fileMenu.Append(wx.ID_ABOUT, _(u"&About"))
+        fileMenu.Append(wx.ID_EXIT, _(u"&Exit"))
+        menuBar.Append(fileMenu, _(u"&File"))
         self.SetMenuBar(menuBar)
         self.Bind(wx.EVT_MENU, self.on_menu)
 
         # Create UI elements and init
-        self.cycles_text = wx.StaticText(self, wx.ID_ANY, "Nr of cycles")
+        self.cycles_text = wx.StaticText(self, wx.ID_ANY, _("Nr of cycles"))
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
-        self.run_button = wx.Button(self, wx.ID_ANY, "Run")
-        self.continue_button = wx.Button(self, wx.ID_ANY, "Continue")
-        self.restart_button = wx.Button(self, wx.ID_ANY, "Restart")
-        self.switches_text = wx.StaticText(self, wx.ID_ANY, "Switches")
+        self.run_button = wx.Button(self, wx.ID_ANY, _("Run"))
+        self.continue_button = wx.Button(self, wx.ID_ANY, _("Continue"))
+        self.restart_button = wx.Button(self, wx.ID_ANY, _("Restart"))
+        self.switches_text = wx.StaticText(self, wx.ID_ANY, _("Switches"))
         self.monitors_text = wx.StaticText(self, wx.ID_ANY,
-                                           "Monitored Outputs")
+                                           _("Monitored Outputs"))
 
         self.continue_button.Disable()              # Init of continue button
 
@@ -505,7 +542,7 @@ class Gui(wx.Frame):
         switches_sizer.Add(row_sizer)
 
         # Starting retrieve button UI
-        retrieve_button = wx.Button(self, -1, "Open definition file")
+        retrieve_button = wx.Button(self, -1, _("Open definition file"))
         side_sizer.Add(retrieve_button, 1, wx.TOP, 5)
 
         # Setting events handling
@@ -532,11 +569,11 @@ class Gui(wx.Frame):
         switch_state = (self.devices.LOW if event.IsChecked() is False
                         else self.devices.HIGH)
         if self.devices.set_switch(switch_id, switch_state):
-            self.canvas.render("Successfully set switch on " + (
-                               "open" if event.IsChecked() is False
-                               else "closed"))
+            self.canvas.render(_("Successfully set switch on ") + (
+                               _("open") if event.IsChecked() is False
+                               else _("closed")))
         else:
-            self.canvas.render("Error! Invalid switch.")
+            self.canvas.render(_("Error! Invalid switch."))
 
     def on_checklist(self, event):
         """
@@ -561,14 +598,14 @@ class Gui(wx.Frame):
             monitor_error = self.monitors.make_monitor(device_id, port_id,
                                                        self.cycles_completed)
             if monitor_error == self.monitors.NO_ERROR:
-                self.canvas.render("Successfully made monitor.")
+                self.canvas.render(_("Successfully made monitor."))
             else:
-                self.canvas.render("Error! Could not make monitor.")
+                self.canvas.render(_("Error! Could not make monitor."))
         else:
             if self.monitors.remove_monitor(device_id, port_id):
-                self.canvas.render("Successfully zapped monitor")
+                self.canvas.render(_("Successfully zapped monitor"))
             else:
-                self.canvas.render("Error! Could not zap monitor.")
+                self.canvas.render(_("Error! Could not zap monitor."))
 
     def run_network(self, cycles):
         """Run the network for the specified number of simulation cycles.
@@ -579,10 +616,10 @@ class Gui(wx.Frame):
             if self.network.execute_network():
                 self.monitors.record_signals()
             else:
-                self.canvas.render("Error! Network oscillating.")
+                self.canvas.render(_("Error! Network oscillating."))
                 return False
-
-        self.canvas.render("Ran for %d cycles." % cycles)
+        
+        self.canvas.render((_("Ran for ")+str(cycles)+_(" cycles.")))
         return True
 
     def on_run(self, event):
@@ -610,8 +647,7 @@ class Gui(wx.Frame):
         if cycles is not None:
             if self.run_network(cycles):
                 self.cycles_completed += cycles
-                self.canvas.render("Continued for %d cycles. Total: %d" %
-                                   (cycles, self.cycles_completed))
+                self.canvas.render(_(_("Continued for ")+str(cycles)+_(" cycles. Total: ")+str(self.cycles_completed)))
 
     def on_restart(self, event):
         """Handle the event when the user clicks the restart button."""
@@ -629,7 +665,7 @@ class Gui(wx.Frame):
         self.canvas.init = False
         self.canvas.pan_x = self.canvas.pan_y = 0
         self.canvas.zoom = 1
-        self.canvas.render("Restarted")
+        self.canvas.render(_("Restarted"))
 
     def on_retrieve(self, event):
         """Handle the event when the user clicks the retrieve button.
@@ -647,5 +683,39 @@ class Gui(wx.Frame):
         if Id == wx.ID_EXIT:
             self.Close(True)
         if Id == wx.ID_ABOUT:
-            wx.MessageBox("Logic Simulator\nCreated by S. Arulselvan, \
-F. Freddi, A. I. Lam\n2018", "About Logsim", wx.ICON_INFORMATION | wx.OK)
+            wx.MessageBox(_("Logic Simulator")+"\n"+_("Created by")+" S. Arulselvan, \
+F. Freddi, A. I. Lam\n2018", _("About")+" Logsim", wx.ICON_INFORMATION | wx.OK)
+        
+    def updateLanguage(self, lang):
+            """
+            Update the language to the requested one.
+
+            Make *sure* any existing locale is deleted before the new
+            one is created.  The old C++ object needs to be deleted
+            before the new one is created, and if we just assign a new
+            instance to the old Python variable, the old C++ locale will
+            not be destroyed soon enough, likely causing a crash.
+
+            :param string `lang`: one of the supported language codes
+
+            """
+
+            langDomain = "LangDomain"
+
+            # if an unsupported language is requested default to English
+            lang="en"
+            if lang in self.supLang:
+                selLang = self.supLang[lang]
+            else:
+                selLang = wx.LANGUAGE_ENGLISH
+
+            if self.locale:
+                assert sys.getrefcount(self.locale) <= 2
+                del self.locale
+
+            # create a locale object for this language
+            self.locale = wx.Locale(selLang)
+            if self.locale.IsOk():
+                self.locale.AddCatalog(langDomain)
+            else:
+                self.locale = None

@@ -302,6 +302,25 @@ class Network:
 
         return True
 
+    def execute_rc(self, device_id):
+        device = self.devices.get_device(device_id)
+        output_signal = device.outputs[None]
+
+        if device.current_count == 0:
+            new_signal = self.update_signal(output_signal, self.devices.HIGH)
+        elif device.current_count == device.highcount + 1:
+            new_signal = self.update_signal(output_signal, self.devices.LOW)
+        else:
+            device.current_count += 1
+            return True
+
+        if new_signal is None:
+            return False
+        device.outputs[None] = new_signal
+        if new_signal in [self.devices.HIGH, self.devices.LOW]:
+            device.current_count += 1
+        return True
+
     def execute_clock(self, device_id):
         """Simulate a clock and update its output signal value.
 
@@ -358,6 +377,7 @@ class Network:
         nand_devices = self.devices.find_devices(self.devices.NAND)
         nor_devices = self.devices.find_devices(self.devices.NOR)
         xor_devices = self.devices.find_devices(self.devices.XOR)
+        rc_devices = self.devices.find_devices(self.devices.RC)
 
         # This sets clock signals to RISING or FALLING, where necessary
         self.update_clocks()
@@ -400,6 +420,9 @@ class Network:
                     return False
             for device_id in xor_devices:  # execute XOR devices
                 if not self.execute_gate(device_id, None, None):
+                    return False
+            for device_id in rc_devices:
+                if not self.execute_rc(device_id):
                     return False
             if self.steady_state:
                 break

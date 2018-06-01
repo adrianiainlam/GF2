@@ -155,7 +155,7 @@ def find_editor():
     if 'VISUAL' in os.environ:
         editors.append(os.environ['VISUAL'])
     if 'EDITOR' in os.environ:
-        editor.append(os.environ['EDITOR'])
+        editors.append(os.environ['EDITOR'])
 
     # a list of common editors to try
     editors += ['emacs', 'nano', 'gedit', 'vim', 'vi', 'ed']

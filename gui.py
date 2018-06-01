@@ -592,7 +592,7 @@ class Gui(wx.Frame):
         if cycles is not None:
             # Handling gui interactions
             self.continue_button.Enable()
-            self.monitors_checklistbox.Disable()
+            #self.monitors_checklistbox.Disable()
 
             # Reset output, print new running network and update nr cycles.
             self.monitors.reset_monitors()
@@ -603,7 +603,7 @@ class Gui(wx.Frame):
     def on_continue(self, event):
         """Handle the event when the user clicks the continue button."""
         # Handling gui interactions
-        self.monitors_checklistbox.Disable()
+        #self.monitors_checklistbox.Disable()
 
         # Print continued network and update nr of cycles if successful.
         cycles = self.spin.GetValue()
@@ -621,6 +621,7 @@ class Gui(wx.Frame):
 
         # Resetting monitors and parameters
         self.monitors.reset_monitors()
+        self.devices.reset_devices()
         self.cycles_completed = 0
         self.spin.SetValue(10)
 

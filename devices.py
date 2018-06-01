@@ -105,7 +105,7 @@ class Devices:
         self.devices_list = []
 
         gate_strings = ["AND", "OR", "NAND", "NOR", "XOR"]
-        device_strings = ["CLOCK", "SWITCH", "DTYPE"]
+        device_strings = ["CLOCK", "SWITCH", "DTYPE", "RC"]
         dtype_inputs = ["CLK", "SET", "CLEAR", "DATA"]
         dtype_outputs = ["Q", "QBAR"]
 
@@ -117,8 +117,8 @@ class Devices:
                              self.FALLING, self.BLANK] = range(5)
         self.gate_types = [self.AND, self.OR, self.NAND, self.NOR,
                            self.XOR] = self.names.lookup(gate_strings)
-        self.device_types = [self.CLOCK, self.SWITCH,
-                             self.D_TYPE] = self.names.lookup(device_strings)
+        self.device_types = [self.CLOCK, self.SWITCH, self.D_TYPE, self.RC] \
+                          = self.names.lookup(device_strings)
         self.dtype_input_ids = [self.CLK_ID, self.SET_ID, self.CLEAR_ID,
                                 self.DATA_ID] = self.names.lookup(dtype_inputs)
         self.dtype_output_ids = [
@@ -278,6 +278,22 @@ class Devices:
                 device.clock_counter = \
                     random.randrange(device.clock_half_period)
 
+    def make_rc(self, device_id, highcount):
+        self.add_device(device_id, self.RC)
+        self.add_output(device_id, output_id=None)
+        device = self.get_device(device_id)
+        device.highcount = highcount
+        device.current_count = 0
+
+    def reset_devices(self):
+        """
+        For devices with initial states, reset them.
+        """
+        rc_idlist = self.find_devices(self.RC)
+        for i in rc_idlist:
+            dev = self.get_device(i)
+            dev.current_count = 0
+
     def make_device(self, device_id, device_kind, device_property=None):
         """Create the specified device.
 
@@ -329,6 +345,15 @@ class Devices:
                 error_type = self.QUALIFIER_PRESENT
             else:
                 self.make_d_type(device_id)
+                error_type = self.NO_ERROR
+
+        elif device_kind == self.RC:
+            if device_property is None:
+                error_type = self.NO_QUALIFIER
+            elif device_property == 0:
+                error_type = self.INVALID_QUALIFIER
+            else:
+                self.make_rc(device_id, device_property)
                 error_type = self.NO_ERROR
 
         else:

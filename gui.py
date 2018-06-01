@@ -391,39 +391,6 @@ class Gui(wx.Frame):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title, size=(800, 600))
 
-        builtins.__dict__['_'] = wx.GetTranslation
-        self.supLang = {u"en": wx.LANGUAGE_ENGLISH,
-           u"fr": wx.LANGUAGE_FRENCH,
-           u"de": wx.LANGUAGE_GERMAN,
-        }
-        # we remove English as source code strings are in English
-        supportedLang = []
-        for l in self.supLang:
-            if l != u"en":
-                supportedLang.append(l)
-        
-        self.locale = None
-        wx.Locale.AddCatalogLookupPathPrefix('locale')
-        self.appName = "LogicSimulator"
-
-        sp = wx.StandardPaths.Get()
-        self.configLoc = sp.GetUserConfigDir()
-        self.configLoc = os.path.join(self.configLoc, self.appName)
-
-        if not os.path.exists(self.configLoc):
-            os.mkdir(self.configLoc)
-
-        self.appConfig = wx.FileConfig(appName=self.appName,
-                                       vendorName=u'who you wish',
-                                       localFilename=os.path.join(
-                                       self.configLoc, "AppConfig"))
-
-        if not self.appConfig.HasEntry(u'Language'):
-            # on first run we default to German
-            self.appConfig.Write(key=u'Language', value=u'fr')
-        
-        self.updateLanguage(self.appConfig.Read(u"Language"))
-
         # Creating global variables
         self.monitors = monitors
         self.devices = devices
@@ -683,39 +650,5 @@ class Gui(wx.Frame):
         if Id == wx.ID_EXIT:
             self.Close(True)
         if Id == wx.ID_ABOUT:
-            wx.MessageBox(_("Logic Simulator")+"\n"+_("Created by")+" S. Arulselvan, \
-F. Freddi, A. I. Lam\n2018", _("About")+" Logsim", wx.ICON_INFORMATION | wx.OK)
-        
-    def updateLanguage(self, lang):
-            """
-            Update the language to the requested one.
-
-            Make *sure* any existing locale is deleted before the new
-            one is created.  The old C++ object needs to be deleted
-            before the new one is created, and if we just assign a new
-            instance to the old Python variable, the old C++ locale will
-            not be destroyed soon enough, likely causing a crash.
-
-            :param string `lang`: one of the supported language codes
-
-            """
-
-            langDomain = "LangDomain"
-
-            # if an unsupported language is requested default to English
-            lang="en"
-            if lang in self.supLang:
-                selLang = self.supLang[lang]
-            else:
-                selLang = wx.LANGUAGE_ENGLISH
-
-            if self.locale:
-                assert sys.getrefcount(self.locale) <= 2
-                del self.locale
-
-            # create a locale object for this language
-            self.locale = wx.Locale(selLang)
-            if self.locale.IsOk():
-                self.locale.AddCatalog(langDomain)
-            else:
-                self.locale = None
+            wx.MessageBox("Logic Simulator\nCreated by S. Arulselvan, \
+F. Freddi, A. I. Lam\n2018", "About Logsim", wx.ICON_INFORMATION | wx.OK)

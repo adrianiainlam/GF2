@@ -393,9 +393,9 @@ class Gui(wx.Frame):
 
         builtins.__dict__['_'] = wx.GetTranslation
 
-        loc = wx.Locale(wx.LANGUAGE_DEFAULT)
-        loc.AddCatalogLookupPathPrefix('locale')
-        loc.AddCatalog("LangDomain")
+        self.loc = wx.Locale(wx.LANGUAGE_DEFAULT)
+        self.loc.AddCatalogLookupPathPrefix('locale')
+        self.loc.AddCatalog("LangDomain")
 
         # Creating global variables
         self.monitors = monitors

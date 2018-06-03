@@ -161,3 +161,8 @@ msgstr ""
 msgid "About"
 msgstr ""
 
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Successfully set switch on "
+msgstr ""
+
+

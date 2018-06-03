@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2012-04-07 10:49+Paris, Madrid (heure dété)\n"
-"PO-Revision-Date: 2018-06-01 13:35+0100\n"
+"PO-Revision-Date: 2018-06-03 17:16+0100\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -15,153 +15,176 @@ msgstr ""
 "X-Generator: Poedit 2.0.7\n"
 "Last-Translator: \n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"Language: de_DE\n"
+"Language: el\n"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:28
 msgid "Close"
-msgstr "Schließen"
+msgstr "Κλείσιμο"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:29
 msgid "Close the application"
-msgstr "Schließen Sie die Anwendung"
+msgstr "Κλείστε την εφαρμογή"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:31
 msgid "&File"
-msgstr "&Datei"
+msgstr "Αρχείο"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:36
 msgid "Edit something"
-msgstr ""
+msgstr "Επεξεργαστείτε κάτι"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:37
 msgid "Edit an entry of something"
-msgstr ""
+msgstr "Επεξεργαστείτε μια καταχώρηση για κάτι"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:40
 msgid "&Edit"
-msgstr "Bearbeiten"
+msgstr "&Επεξεργασία"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:45
 msgid "&About"
-msgstr "Über"
+msgstr "&Περίπου"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:46
 msgid "About the program"
-msgstr ""
+msgstr "Σχετικά με το πρόγραμμα"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:48
 msgid "&Help"
-msgstr "Hilfe"
+msgstr "&Βοήθεια"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:58
 msgid "A nice label for the TextCtrl"
-msgstr ""
+msgstr "Μια ωραία ετικέτα για το TextCtrl"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:63
 msgid "a search control"
-msgstr ""
+msgstr "ένας έλεγχος αναζήτηση"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:70
 msgid "Open a file dialog"
-msgstr ""
+msgstr "Άνοιγμα διαλόγου αρχείου"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "Choose a file"
-msgstr ""
+msgstr "Επιλέξτε ένα αρχείο"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "Nr of cycles"
-msgstr "Anzahl der Zyklen"
+msgstr "Αριθμός κύκλων"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "Run"
-msgstr "Lauf"
+msgstr "Τρέχω"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "Continue"
-msgstr "Fortsetzen"
+msgstr "Συνέχεια"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "Restart"
-msgstr "Neustart"
+msgstr "Επανεκκίνηση"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "Switches"
-msgstr "Schalter"
+msgstr "Διακόπτες"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "Monitored Outputs"
-msgstr "Überwachte Ausgänge"
+msgstr "Παρακολουθούνται εξόδους"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "Open definition file"
-msgstr "Öffnen Sie die Definitionsdatei"
+msgstr "Άνοιγμα αρχείου ορισμού"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "open"
-msgstr "öffnen"
+msgstr "ανοιχτό"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "closed"
-msgstr "geschlossen"
+msgstr "έκλεισε"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "Successfully made monitor."
-msgstr "Erfolgreich gemacht Monitor."
+msgstr "Επιτυχής παρακολούθηση."
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "Error! Could not make monitor."
-msgstr "Error! Monitor konnte nicht erstellt werden."
+msgstr "Λάθος! Δεν ήταν δυνατή η δημιουργία της οθόνης."
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "Successfully zapped monitor."
-msgstr "Monitor erfolgreich gecheckt."
+msgstr "Η παρακολούθηση ολοκληρώθηκε με επιτυχία."
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "Error! Could not zap monitor."
-msgstr "Error! Der Monitor konnte nicht zappen."
+msgstr "Λάθος! Δεν ήταν δυνατή η παρακολούθηση του προγράμματος."
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "Error! Invalid switch."
-msgstr "Error! Ungültiger Schalter"
+msgstr "Λάθος! Μη έγκυρος διακόπτης."
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "Error! Network oscillating."
-msgstr "Error! Netzwerk oszilliert."
+msgstr "Λάθος! Το δίκτυο ταλαντώνεται."
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "Ran for "
-msgstr "Rannte für "
+msgstr "Ραν για "
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid " cycles."
-msgstr " zyklus"
+msgstr " κύκλοι λειτουργίας."
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "Continued for "
-msgstr "Fortsetzung für "
+msgstr "Συνεχίστηκε για "
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid " cycles. Total: "
-msgstr " zyklen. Gesamt: "
+msgstr " κύκλους. Σύνολο: "
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "Restarted"
-msgstr "Neu gestartet"
+msgstr "Επανεκκίνηση"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "Logic Simulator"
-msgstr "Logiksimulator"
+msgstr "Προσομοιωτής λογικής"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "Created by"
-msgstr "Erstellt von"
+msgstr "Δημιουργήθηκε από"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "About"
-msgstr "Über"
+msgstr "Περίπου"
 
 #: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
 msgid "Successfully set switch on "
-msgstr "Successfully set switch on "
- 
+msgstr "Επιτυχώς ενεργοποιήστε την ενεργοποίηση "
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Services"
+msgstr "Υπηρεσίες"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Hide "
+msgstr "Κρύβω "
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Hide Others"
+msgstr "Απόκρυψη άλλων"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Show All"
+msgstr "Προβολή όλων"
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Quit "
+msgstr "Εγκαταλείπω "
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Quit Logsim"
+msgstr "Κλείστε το Logsim"

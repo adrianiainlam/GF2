@@ -404,7 +404,8 @@ class Gui(wx.Frame):
            u"de_DE.UTF-8": wx.LANGUAGE_GERMAN,
            u"fr_FR.utf8": wx.LANGUAGE_FRENCH,
            u"fr_FR.UTF8": wx.LANGUAGE_FRENCH,
-           u"fr_FR.UTF-8": wx.LANGUAGE_FRENCH
+           u"fr_FR.UTF-8": wx.LANGUAGE_FRENCH,
+           u"el": wx.LANGUAGE_GREEK
         }
 
         supportedLang = []
@@ -601,7 +602,7 @@ class Gui(wx.Frame):
                 self.canvas.render(_("Error! Could not make monitor."))
         else:
             if self.monitors.remove_monitor(device_id, port_id):
-                self.canvas.render(_("Successfully zapped monitor"))
+                self.canvas.render(_("Successfully zapped monitor."))
             else:
                 self.canvas.render(_("Error! Could not zap monitor."))
 
@@ -610,14 +611,13 @@ class Gui(wx.Frame):
 
         Return True if successful.
         """
-        for _ in range(cycles):
+        for elements in range(cycles):
             if self.network.execute_network():
                 self.monitors.record_signals()
             else:
                 self.canvas.render(_("Error! Network oscillating."))
                 return False
-        
-        self.canvas.render((_("Ran for ")+str(cycles)+_(" cycles.")))
+        self.canvas.render(_("Ran for ")+str(cycles)+_(" cycles."))
         return True
 
     def on_run(self, event):

@@ -19,6 +19,7 @@ from monitors import Monitors
 from scanner import Scanner
 from parse import Parser
 import os
+import locale
 
 
 import builtins
@@ -391,38 +392,35 @@ class Gui(wx.Frame):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title, size=(800, 600))
 
+
         builtins.__dict__['_'] = wx.GetTranslation
         self.supLang = {u"en": wx.LANGUAGE_ENGLISH,
            u"fr": wx.LANGUAGE_FRENCH,
            u"de": wx.LANGUAGE_GERMAN,
+           u"de_DE": wx.LANGUAGE_GERMAN,
+           u"fr_FR": wx.LANGUAGE_FRENCH,
+           u"de_DE.utf8": wx.LANGUAGE_GERMAN,
+           u"de_DE.UTF8": wx.LANGUAGE_GERMAN,
+           u"de_DE.UTF-8": wx.LANGUAGE_GERMAN,
+           u"fr_FR.utf8": wx.LANGUAGE_FRENCH,
+           u"fr_FR.UTF8": wx.LANGUAGE_FRENCH,
+           u"fr_FR.UTF-8": wx.LANGUAGE_FRENCH
         }
-        # we remove English as source code strings are in English
+
         supportedLang = []
         for l in self.supLang:
+            # Not English as source code strings are in English
             if l != u"en":
                 supportedLang.append(l)
+
+        if 'LANG' in os.environ:
+            lang_selected=os.environ['LANG']
+        else: 
+            lang_selected=locale.getdefaultlocale()
         
         self.locale = None
         wx.Locale.AddCatalogLookupPathPrefix('locale')
-        self.appName = "LogicSimulator"
-
-        sp = wx.StandardPaths.Get()
-        self.configLoc = sp.GetUserConfigDir()
-        self.configLoc = os.path.join(self.configLoc, self.appName)
-
-        if not os.path.exists(self.configLoc):
-            os.mkdir(self.configLoc)
-
-        self.appConfig = wx.FileConfig(appName=self.appName,
-                                       vendorName=u'who you wish',
-                                       localFilename=os.path.join(
-                                       self.configLoc, "AppConfig"))
-
-        if not self.appConfig.HasEntry(u'Language'):
-            # on first run we default to German
-            self.appConfig.Write(key=u'Language', value=u'fr')
-        
-        self.updateLanguage(self.appConfig.Read(u"Language"))
+        self.updateLanguage(lang_selected)
 
         # Creating global variables
         self.monitors = monitors
@@ -702,9 +700,8 @@ F. Freddi, A. I. Lam\n2018", _("About")+" Logsim", wx.ICON_INFORMATION | wx.OK)
             """
 
             langDomain = "LangDomain"
-
+            print(lang)
             # if an unsupported language is requested default to English
-            lang="en"
             if lang in self.supLang:
                 selLang = self.supLang[lang]
             else:

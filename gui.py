@@ -538,10 +538,15 @@ class Gui(wx.Frame):
         self.retrieve_button = wx.Button(self, -1, _("Open definition file"), size=wx.Size(187,10))
         side_sizer.Add(self.retrieve_button, 1, wx.TOP| wx.BOTTOM, 5)
 
+        if lang_selected in self.supLang:
+            value=lang_selected
+        else:
+            value="en_GB"
+
         # Language string and dropdown menu
         self.language_text = wx.StaticText(self, wx.ID_ANY, _("Language preference"))
         side_sizer.Add(self.language_text,0, wx.TOP, 5)
-        self.languageCombobox = wx.ComboBox(self, choices=list(self.supLang.keys()), style=wx.CB_DROPDOWN)
+        self.languageCombobox = wx.ComboBox(self, choices=list(self.supLang.keys()), style=wx.CB_DROPDOWN, value=value)
         side_sizer.Add(self.languageCombobox, 0, wx.ALL, 5)
         self.languageCombobox.Bind(wx.EVT_COMBOBOX, self.on_language)
 
@@ -552,7 +557,6 @@ class Gui(wx.Frame):
         self.usrmsg.SetForegroundColour("gray") # set text color
         side_sizer.Add(self.usrmsg_text, 1, wx.TOP, 40)
         side_sizer.Add(self.usrmsg, 1, wx.TOP, 5)
-
 
         # Setting events handling
         self.Bind(wx.EVT_CHECKBOX, self.on_checkbox)
@@ -729,7 +733,6 @@ F. Freddi, A. I. Lam\n2018", _("About")+" Logsim", wx.ICON_INFORMATION | wx.OK)
             """
 
             langDomain = "LangDomain"
-            print(lang)
             # if an unsupported language is requested default to English
             if lang in self.supLang:
                 selLang = self.supLang[lang]

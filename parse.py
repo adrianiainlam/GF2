@@ -598,7 +598,7 @@ class Parser:
                 "\n" + "Traceback:",
                 std_string.format(
                     path,
-                    self._current_sym.linenum))
+                    self._current_sym.linenum + 1))
             print('\n',
                   '\t',
                   self._scanner.filelines[self._current_sym.linenum],

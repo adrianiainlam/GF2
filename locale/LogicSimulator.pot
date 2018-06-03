@@ -165,4 +165,13 @@ msgstr ""
 msgid "Successfully set switch on "
 msgstr ""
 
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Language preference"
+msgstr ""
+
+#: h:\devProjectsT\Phoenix\docs\sphinx\_downloads\i18nwxapp\sampleapp.py:82
+msgid "Execution Information:"
+msgstr ""
+
+
 

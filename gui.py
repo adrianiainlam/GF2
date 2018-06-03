@@ -392,20 +392,12 @@ class Gui(wx.Frame):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title, size=(800, 600))
 
-
         builtins.__dict__['_'] = wx.GetTranslation
-        self.supLang = {u"en": wx.LANGUAGE_ENGLISH,
-           u"fr": wx.LANGUAGE_FRENCH,
-           u"de": wx.LANGUAGE_GERMAN,
+        self.supLang = {
            u"de_DE": wx.LANGUAGE_GERMAN,
-           u"fr_FR": wx.LANGUAGE_FRENCH,
-           u"de_DE.utf8": wx.LANGUAGE_GERMAN,
-           u"de_DE.UTF8": wx.LANGUAGE_GERMAN,
-           u"de_DE.UTF-8": wx.LANGUAGE_GERMAN,
-           u"fr_FR.utf8": wx.LANGUAGE_FRENCH,
-           u"fr_FR.UTF8": wx.LANGUAGE_FRENCH,
-           u"fr_FR.UTF-8": wx.LANGUAGE_FRENCH,
-           u"el": wx.LANGUAGE_GREEK
+           u"el": wx.LANGUAGE_GREEK,
+           u"en_GB":wx.LANGUAGE_ENGLISH,
+           u"fr_FR": wx.LANGUAGE_FRENCH
         }
 
         supportedLang = []
@@ -431,11 +423,13 @@ class Gui(wx.Frame):
         self.cycles_completed = 0
 
         # Create and setup the file menu
-        fileMenu = wx.Menu()
         menuBar = wx.MenuBar()
+        fileMenu = wx.Menu()
+        languageMenu = wx.Menu()
         fileMenu.Append(wx.ID_ABOUT, _(u"&About"))
         fileMenu.Append(wx.ID_EXIT, _(u"&Exit"))
         menuBar.Append(fileMenu, _(u"&File"))
+
         self.SetMenuBar(menuBar)
         self.Bind(wx.EVT_MENU, self.on_menu)
 
@@ -444,7 +438,7 @@ class Gui(wx.Frame):
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
         self.run_button = wx.Button(self, wx.ID_ANY, _("Run"))
         self.continue_button = wx.Button(self, wx.ID_ANY, _("Continue"))
-        self.restart_button = wx.Button(self, wx.ID_ANY, _("Restart"))
+        self.restart_button = wx.Button(self, wx.ID_ANY, _("Restart"), size=wx.Size(110,10))
         self.switches_text = wx.StaticText(self, wx.ID_ANY, _("Switches"))
         self.monitors_text = wx.StaticText(self, wx.ID_ANY,
                                            _("Monitored Outputs"))
@@ -469,8 +463,8 @@ class Gui(wx.Frame):
         buttons_sizer.Add(self.continue_button, 1, wx.ALL, 5)
         side_sizer.Add(self.restart_button, 1, wx.ALL, 5)
         side_sizer.Add(self.switches_text)
-        side_sizer.Add(switches_sizer, 1, wx.ALL, 5)
-        side_sizer.Add(self.monitors_text, 1, wx.TOP, 10)
+        side_sizer.Add(switches_sizer, 1, wx.TOP, 5)
+        side_sizer.Add(self.monitors_text, 1, wx.TOP, 5)
 
         # Starting monitors UI
         # Retrieve and create names list of showed/hidden monitors.
@@ -541,8 +535,15 @@ class Gui(wx.Frame):
         switches_sizer.Add(row_sizer)
 
         # Starting retrieve button UI
-        retrieve_button = wx.Button(self, -1, _("Open definition file"))
-        side_sizer.Add(retrieve_button, 1, wx.TOP, 5)
+        self.retrieve_button = wx.Button(self, -1, _("Open definition file"), size=wx.Size(185,10))
+        side_sizer.Add(self.retrieve_button, 1, wx.TOP, 5)
+
+        # Language string and dropdown menu
+        self.language_text = wx.StaticText(self, wx.ID_ANY, _("Language preference"))
+        side_sizer.Add(self.language_text,0, wx.TOP, 5)
+        self.languageCombobox = wx.ComboBox(self, choices=list(self.supLang.keys()), style=wx.CB_DROPDOWN)
+        side_sizer.Add(self.languageCombobox, 0, wx.ALL, 5)
+        self.languageCombobox.Bind(wx.EVT_COMBOBOX, self.on_language)
 
         # Setting events handling
         self.Bind(wx.EVT_CHECKBOX, self.on_checkbox)
@@ -550,10 +551,17 @@ class Gui(wx.Frame):
         self.run_button.Bind(wx.EVT_BUTTON, self.on_run)
         self.continue_button.Bind(wx.EVT_BUTTON, self.on_continue)
         self.restart_button.Bind(wx.EVT_BUTTON, self.on_restart)
-        retrieve_button.Bind(wx.EVT_BUTTON, self.on_retrieve)
+        self.retrieve_button.Bind(wx.EVT_BUTTON, self.on_retrieve)
 
         self.SetSizeHints(600, 600)
         self.SetSizer(main_sizer)
+
+    def on_language(self, event):
+        clicked = event.GetEventObject()
+        self.locale = None
+        wx.Locale.AddCatalogLookupPathPrefix('locale')
+        self.updateLanguage(event.GetString())
+        self.loadLanguageStrings()
 
     def on_checkbox(self, event):
         """Handle the event when the user checks or unchecks a checkbox.
@@ -681,10 +689,11 @@ class Gui(wx.Frame):
         Id = event.GetId()
         if Id == wx.ID_EXIT:
             self.Close(True)
-        if Id == wx.ID_ABOUT:
+        elif Id == wx.ID_ABOUT:
             wx.MessageBox(_("Logic Simulator")+"\n"+_("Created by")+" S. Arulselvan, \
 F. Freddi, A. I. Lam\n2018", _("About")+" Logsim", wx.ICON_INFORMATION | wx.OK)
-        
+
+
     def updateLanguage(self, lang):
             """
             Update the language to the requested one.
@@ -717,3 +726,13 @@ F. Freddi, A. I. Lam\n2018", _("About")+" Logsim", wx.ICON_INFORMATION | wx.OK)
                 self.locale.AddCatalog(langDomain)
             else:
                 self.locale = None
+    
+    def loadLanguageStrings(self):
+        self.cycles_text.SetLabel(_("Nr of cycles"))
+        self.run_button.SetLabel(_("Run"))
+        self.continue_button.SetLabel(_("Continue"))
+        self.restart_button.SetLabel(_("Restart"))
+        self.switches_text.SetLabel(_("Switches"))
+        self.monitors_text.SetLabel(_("Monitored Outputs"))
+        self.retrieve_button.SetLabel(_("Open definition file"))
+        self.language_text.SetLabel(_("Language preference"))

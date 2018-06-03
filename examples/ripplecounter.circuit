@@ -1,11 +1,12 @@
 # ripple counter
 DEVICE
     DTYPE d1, d2, d3, d4;
-    CLOCK ck(2);
+    CLOCK ck(1);
     SWITCH gnd(0);
+    RC rc(1);
 CONNECT
-    gnd -> d1.SET, d1.CLEAR, d2.SET, d2.CLEAR, d3.SET, d3.CLEAR,
-           d4.SET, d4.CLEAR;
+    gnd -> d1.SET, d2.SET, d3.SET, d4.SET;
+    rc -> d1.CLEAR, d2.CLEAR, d3.CLEAR, d4.CLEAR;
 
     d1.QBAR -> d1.DATA;
     d2.QBAR -> d2.DATA;

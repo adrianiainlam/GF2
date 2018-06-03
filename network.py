@@ -54,6 +54,9 @@ class Network:
     execute_clock(self, device_id): Simulates a clock and updates its output
                                     signal value.
 
+    execute_rc(self, device_id): Simulates an RC device and updates its
+                                 output signal value.
+
     update_clocks(self): If it is time to do so, sets clock signals to RISING
                          or FALLING.
 
@@ -303,22 +306,25 @@ class Network:
         return True
 
     def execute_rc(self, device_id):
+        """
+        Simulates an RC device and update its output signal value where
+        necessary.
+
+        Returns True if successful.
+        """
         device = self.devices.get_device(device_id)
         output_signal = device.outputs[None]
 
         if device.current_count == 0:
             new_signal = self.update_signal(output_signal, self.devices.HIGH)
-        elif device.current_count == device.highcount + 1:
+        elif device.current_count == device.highcount:
             new_signal = self.update_signal(output_signal, self.devices.LOW)
         else:
-            device.current_count += 1
             return True
 
         if new_signal is None:
             return False
         device.outputs[None] = new_signal
-        if new_signal in [self.devices.HIGH, self.devices.LOW]:
-            device.current_count += 1
         return True
 
     def execute_clock(self, device_id):
@@ -426,4 +432,7 @@ class Network:
                     return False
             if self.steady_state:
                 break
+        # Update RC devices cycle counter
+        for device_id in rc_devices:
+            self.devices.get_device(device_id).current_count += 1
         return self.steady_state

@@ -633,6 +633,7 @@ class Gui(wx.Frame):
 
             # Reset output, print new running network and update nr cycles.
             self.monitors.reset_monitors()
+            self.devices.reset_devices()
             self.devices.cold_startup()
             if self.run_network(cycles):
                 self.cycles_completed += cycles

@@ -1,0 +1,13 @@
+\section{Specification of the logic description language}
+  The logic description language is described by EBNF definition in
+  \lstlistingname~\ref{lst:ebnf}. It is noted that since a high
+  flexibility was incorporated into the grammar by specifying device
+  types as a capital string (instead of a list of string literals of
+  recognized devices), there was no need to change the grammar
+  (hence no need to change the parser) when additional devices were
+  added during the maintenance phase.
+
+  \lstinputlisting
+      [caption={EBNF definition of the logic description language},
+       label={lst:ebnf}]
+      {\gitrepopath/finalreport/definition_syntax.txt}

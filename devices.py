@@ -91,6 +91,15 @@ class Devices:
 
     make_d_type(self, device_id): Makes a D-type device.
 
+    make_rc(self, device_id, highcount): Makes an RC device i.e. a device
+                                         which takes no input and outputs
+                                         a high level for `highcount'
+                                         number of cycles, then outputs
+                                         a low level.
+
+    reset_devices(self): Resets all devices with an initial state.
+                         Currently, only RC devices are affected.
+
     cold_startup(self): Simulates cold start-up of D-types and clocks.
 
     make_device(self, device_id, device_kind, device_property=None): Creates
@@ -279,6 +288,21 @@ class Devices:
                     random.randrange(device.clock_half_period)
 
     def make_rc(self, device_id, highcount):
+        """
+        Make an RC device.
+
+        This device takes no input. It initially outputs a high
+        logic level for `highcount' number of times, then outputs
+        a low level. highcount should be a positive integer.
+
+        The RC device has an attribute `current_count' which
+        should be initialised to 0. It should then be incremented
+        each time a network cycle is completed. It should be reset
+        to 0 (done by self.reset_devices()) when the network is
+        reset.
+        """
+        assert isinstance(highcount, int)
+        assert highcount > 0
         self.add_device(device_id, self.RC)
         self.add_output(device_id, output_id=None)
         device = self.get_device(device_id)
@@ -288,6 +312,8 @@ class Devices:
     def reset_devices(self):
         """
         For devices with initial states, reset them.
+
+        Currently only RC devices need to be reset.
         """
         rc_idlist = self.find_devices(self.RC)
         for i in rc_idlist:

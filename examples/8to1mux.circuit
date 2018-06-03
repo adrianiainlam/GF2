@@ -14,7 +14,8 @@ DEVICE
     CLOCK sel2(4), sel1(2), sel0(1);
     
     SWITCH i7(0), i6(0), i5(0), i4(0), i3(0), i2(0), i1(0), i0(0);
-    NAND notsel2(1), notsel1(1), notsel0(1);
+    NAND notsel2(1);  # demonstrate 1-input gate, same as NOT
+    NOT notsel1, notsel0;
     AND addr7(3), addr6(3), addr5(3), addr4(3),
         addr3(3), addr2(3), addr1(3), addr0(3);
     AND i7sel, i6sel, i5sel, i4sel, i3sel, i2sel, i1sel;
@@ -87,5 +88,6 @@ CONNECT
     i1sel -> output.I1;
     i0sel -> output.I8;
 MONITOR
+    sel2, sel1, sel0,
     output
 END

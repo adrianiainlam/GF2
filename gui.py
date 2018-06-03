@@ -456,13 +456,13 @@ class Gui(wx.Frame):
         # Setting hierarchy of sizers and UI elements
         main_sizer.Add(self.canvas, 5, wx.EXPAND | wx.ALL, 5)
         main_sizer.Add(side_sizer, 1, wx.ALL, 5)
-        side_sizer.Add(self.cycles_text, 1, wx.TOP, 10)
-        side_sizer.Add(self.spin, 1, wx.ALL, 5)
-        side_sizer.Add(buttons_sizer)
+        side_sizer.Add(self.cycles_text, 1, wx.TOP, 5)
+        side_sizer.Add(self.spin, 1, wx.TOP, 5)
+        side_sizer.Add(buttons_sizer, 1, wx.TOP, 5)
         buttons_sizer.Add(self.run_button, 1, wx.ALL, 5)
         buttons_sizer.Add(self.continue_button, 1, wx.ALL, 5)
         side_sizer.Add(self.restart_button, 1, wx.ALL, 5)
-        side_sizer.Add(self.switches_text)
+        side_sizer.Add(self.switches_text,1, wx.TOP, 5)
         side_sizer.Add(switches_sizer, 1, wx.TOP, 5)
         side_sizer.Add(self.monitors_text, 1, wx.TOP, 5)
 
@@ -497,7 +497,7 @@ class Gui(wx.Frame):
         self.monitors_checklistbox = wx.CheckListBox(
                                      self, choices=choices_list,
                                      size=size_checklistbox)
-        side_sizer.Add(self.monitors_checklistbox)
+        side_sizer.Add(self.monitors_checklistbox, 1, wx.TOP, 5)
         self.monitors_checklistbox.Enable()
 
         # Setting which switches are checked
@@ -526,7 +526,7 @@ class Gui(wx.Frame):
             label = self.names.get_name_string(choices_list[s].device_id)
             self.checkbox = wx.CheckBox(self, label=label, name=label)
             self.checkbox.SetValue(switches_state_list[s][1])
-            row_sizer.Add(self.checkbox, 0, wx.ALL, 5)
+            row_sizer.Add(self.checkbox, 0, wx.TOP, 0)
             if column_number == column_range and \
                s != len(switches_state_list) - 1:
                 column_number = 0
@@ -535,8 +535,8 @@ class Gui(wx.Frame):
         switches_sizer.Add(row_sizer)
 
         # Starting retrieve button UI
-        self.retrieve_button = wx.Button(self, -1, _("Open definition file"), size=wx.Size(185,10))
-        side_sizer.Add(self.retrieve_button, 1, wx.TOP, 5)
+        self.retrieve_button = wx.Button(self, -1, _("Open definition file"), size=wx.Size(187,10))
+        side_sizer.Add(self.retrieve_button, 1, wx.TOP| wx.BOTTOM, 5)
 
         # Language string and dropdown menu
         self.language_text = wx.StaticText(self, wx.ID_ANY, _("Language preference"))
@@ -544,6 +544,15 @@ class Gui(wx.Frame):
         self.languageCombobox = wx.ComboBox(self, choices=list(self.supLang.keys()), style=wx.CB_DROPDOWN)
         side_sizer.Add(self.languageCombobox, 0, wx.ALL, 5)
         self.languageCombobox.Bind(wx.EVT_COMBOBOX, self.on_language)
+
+        # User message string and text control
+        self.usrmsg_text = wx.StaticText(self, wx.ID_ANY, _("Execution information:"))
+        self.usrmsg_text.SetForegroundColour("gray") # set text color
+        self.usrmsg=wx.TextCtrl(self, wx.ID_ANY,  _("Ready"), style=wx.HSCROLL|wx.TE_READONLY, size=wx.Size(185,55))
+        self.usrmsg.SetForegroundColour("gray") # set text color
+        side_sizer.Add(self.usrmsg_text, 1, wx.TOP, 40)
+        side_sizer.Add(self.usrmsg, 1, wx.TOP, 5)
+
 
         # Setting events handling
         self.Bind(wx.EVT_CHECKBOX, self.on_checkbox)
@@ -576,11 +585,13 @@ class Gui(wx.Frame):
         switch_state = (self.devices.LOW if event.IsChecked() is False
                         else self.devices.HIGH)
         if self.devices.set_switch(switch_id, switch_state):
-            self.canvas.render(_("Successfully set switch on ") + (
+            self.canvas.render()
+            self.usrmsg.SetValue(_("Successfully set switch on \n") + (
                                _("open") if event.IsChecked() is False
                                else _("closed")))
         else:
-            self.canvas.render(_("Error! Invalid switch."))
+            self.canvas.render()
+            self.usrmsg.SetValue(_("Error! Invalid switch."))
 
     def on_checklist(self, event):
         """
@@ -605,14 +616,18 @@ class Gui(wx.Frame):
             monitor_error = self.monitors.make_monitor(device_id, port_id,
                                                        self.cycles_completed)
             if monitor_error == self.monitors.NO_ERROR:
-                self.canvas.render(_("Successfully made monitor."))
+                self.canvas.render()
+                self.usrmsg.SetValue(_("Successfully made monitor."))
             else:
-                self.canvas.render(_("Error! Could not make monitor."))
+                self.canvas.render()
+                self.usrmsg.SetValue(_("Error! Could not make monitor."))
         else:
             if self.monitors.remove_monitor(device_id, port_id):
-                self.canvas.render(_("Successfully zapped monitor."))
+                self.canvas.render()
+                self.usrmsg.SetValue(_("Successfully zapped monitor."))
             else:
-                self.canvas.render(_("Error! Could not zap monitor."))
+                self.canvas.render()
+                self.usrmsg.SetValue(_("Error! Could not zap monitor."))
 
     def run_network(self, cycles):
         """Run the network for the specified number of simulation cycles.
@@ -623,9 +638,9 @@ class Gui(wx.Frame):
             if self.network.execute_network():
                 self.monitors.record_signals()
             else:
-                self.canvas.render(_("Error! Network oscillating."))
+                self.canvas.render()
+                self.usrmsg.SetValue(_("Error! Network oscillating."))
                 return False
-        self.canvas.render(_("Ran for ")+str(cycles)+_(" cycles."))
         return True
 
     def on_run(self, event):
@@ -643,6 +658,9 @@ class Gui(wx.Frame):
             self.devices.cold_startup()
             if self.run_network(cycles):
                 self.cycles_completed += cycles
+                self.canvas.render()
+                self.usrmsg.SetValue(_("Ran for ")+str(cycles)+_(" cycles."))
+
 
     def on_continue(self, event):
         """Handle the event when the user clicks the continue button."""
@@ -654,7 +672,8 @@ class Gui(wx.Frame):
         if cycles is not None:
             if self.run_network(cycles):
                 self.cycles_completed += cycles
-                self.canvas.render(_(_("Continued for ")+str(cycles)+_(" cycles. Total: ")+str(self.cycles_completed)))
+                self.canvas.render()
+                self.usrmsg.SetValue(_("Continued for ")+str(cycles)+_(" cycles.\nTotal: ")+str(self.cycles_completed))
 
     def on_restart(self, event):
         """Handle the event when the user clicks the restart button."""
@@ -672,7 +691,8 @@ class Gui(wx.Frame):
         self.canvas.init = False
         self.canvas.pan_x = self.canvas.pan_y = 0
         self.canvas.zoom = 1
-        self.canvas.render(_("Restarted"))
+        self.canvas.render()
+        self.usrmsg.SetValue(_("Restarted"))
 
     def on_retrieve(self, event):
         """Handle the event when the user clicks the retrieve button.
@@ -736,3 +756,4 @@ F. Freddi, A. I. Lam\n2018", _("About")+" Logsim", wx.ICON_INFORMATION | wx.OK)
         self.monitors_text.SetLabel(_("Monitored Outputs"))
         self.retrieve_button.SetLabel(_("Open definition file"))
         self.language_text.SetLabel(_("Language preference"))
+        self.usrmsg.SetValue(_("Language changed \nsuccessfully."))

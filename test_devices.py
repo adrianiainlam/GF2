@@ -57,15 +57,17 @@ def test_make_device(new_devices):
     names = new_devices.names
 
     [NAND1_ID, CLOCK1_ID, D1_ID, I1_ID,
-     I2_ID] = names.lookup(["Nand1", "Clock1", "D1", "I1", "I2"])
+     I2_ID, NOT1_ID] = names.lookup(["Nand1", "Clock1", "D1", "I1", "I2", "not1"])
     new_devices.make_device(NAND1_ID, new_devices.NAND, 2)  # 2-input NAND
     # Clock half period is 5
     new_devices.make_device(CLOCK1_ID, new_devices.CLOCK, 5)
     new_devices.make_device(D1_ID, new_devices.D_TYPE)
+    new_devices.make_device(NOT1_ID,new_devices.NOT)
 
     nand_device = new_devices.get_device(NAND1_ID)
     clock_device = new_devices.get_device(CLOCK1_ID)
     dtype_device = new_devices.get_device(D1_ID)
+    not_device = new_devices.get_device(NOT1_ID)
 
     assert nand_device.inputs == {I1_ID: None, I2_ID: None}
     assert clock_device.inputs == {}
@@ -73,8 +75,10 @@ def test_make_device(new_devices):
                                    new_devices.SET_ID: None,
                                    new_devices.CLEAR_ID: None,
                                    new_devices.CLK_ID: None}
+    assert not_device.inputs =={I1_ID:None}
 
     assert nand_device.outputs == {None: new_devices.LOW}
+    assert not_device.outputs == {None: new_devices.LOW}
 
     # Clock could be anywhere in its cycle
     assert clock_device.outputs in [{None: new_devices.LOW},
@@ -96,6 +100,7 @@ def test_make_device(new_devices):
     ("(D_ID, D_ID, None)", "new_devices.BAD_DEVICE"),
     ("(CL_ID, new_devices.CLOCK, 0)", "new_devices.INVALID_QUALIFIER"),
     ("(CL_ID, new_devices.CLOCK, 10)", "new_devices.NO_ERROR"),
+    ("(NOT1_ID, new_devices.NOT, 3)", "new_devices.INVALID_QUALIFIER"),
 
     # Note: XOR device X2_ID will have been made earlier in the function
     ("(X2_ID, new_devices.XOR)", "new_devices.DEVICE_PRESENT"),
@@ -104,7 +109,7 @@ def test_make_device_gives_errors(new_devices, function_args, error):
     """Test if make_device returns the appropriate errors."""
     names = new_devices.names
     [AND1_ID, SW1_ID, CL_ID, D_ID, X1_ID,
-     X2_ID] = names.lookup(["And1", "Sw1", "Clock1", "D1", "Xor1", "Xor2"])
+     X2_ID, NOT1_ID] = names.lookup(["And1", "Sw1", "Clock1", "D1", "Xor1", "Xor2", "Not1"])
 
     # Add a XOR device: X2_ID
     new_devices.make_device(X2_ID, new_devices.XOR)

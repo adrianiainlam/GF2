@@ -95,6 +95,7 @@ def test_get_output_signal(network_with_devices):
     assert network.get_output_signal(OR1_ID, None) == devices.HIGH
 
 
+
 def test_check_network(network_with_devices):
     """Test if the signal at a given input port is correct."""
     network = network_with_devices
@@ -222,7 +223,8 @@ def test_execute_xor(new_network):
 ])
 def test_execute_non_xor_gates(new_network, gate_id, switch_outputs,
                                gate_output, gate_kind):
-    """Test if execute_network returns the correct output for non-XOR gates."""
+    """Test if execute_network returns the correct output for non-XOR gates except
+    NOT gates."""
     network = new_network
     devices = network.devices
     names = devices.names
@@ -254,6 +256,31 @@ def test_execute_non_xor_gates(new_network, gate_id, switch_outputs,
 
     network.execute_network()
     assert network.get_output_signal(gate_id, None) == eval(gate_output)
+
+
+@pytest.mark.parametrize("gate_id, switch_output, gate_output, gate_kind", [
+    ("NOT1_ID", "LOW", "HIGH", "devices.NOT"),
+    ("NOT1_ID", "HIGH", "LOW", "devices.NOT")
+])
+def test_execute_not_gate(new_network, gate_id, switch_output, gate_output, gate_kind):
+    """Test if excecute_network returns the correct output for NOT gates"""
+    network = new_network
+    devices = network.devices
+    names = devices.names
+    [NOT1_ID, SW1_ID, I1] = names.lookup(["Not1", "Sw1", "I1"])
+    LOW = devices.LOW
+    HIGH = devices.HIGH
+    gate_id = eval(gate_id)
+    gate_kind = eval(gate_kind)
+    devices.make_device(gate_id, gate_kind)
+    devices.make_device(SW1_ID, devices.SWITCH, 0)
+    network.make_connection(SW1_ID, None, gate_id, I1)
+    devices.set_switch(SW1_ID, eval(switch_output))
+    network.execute_network()
+
+    assert network.get_output_signal(gate_id, None) == eval(gate_output)
+
+
 
 
 def test_execute_non_gates(new_network):

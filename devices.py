@@ -363,7 +363,7 @@ class Devices:
                 #making NOT gate by one input nand gate
                 device_kind = self.NAND
                 if device_property not in [None, 1]:
-                    error_type = self.QUALIFIER_PRESENT
+                    error_type = self.INVALID_QUALIFIER
                 else:
                     device_property = 1
                     self.make_gate(device_id, device_kind, device_property)

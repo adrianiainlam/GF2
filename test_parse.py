@@ -8,7 +8,7 @@ from monitors import Monitors
 
 fulladderpath = "First report/examples/fulladder.circuit"
 ripplecounterpath = "First report/examples/ripplecounter.circuit"
-
+error_location = "bad_examples/error_location.circuit"
 
 # This is only a syntax check, we override semantic error-reporting
 # functions in devices, network and monitor with dummy functions that
@@ -522,3 +522,18 @@ def test_empty_file(parser_emptyfile):
     with pytest.raises(SystemExit) as e:
         parser_emptyfile.parse_network()
     assert e.value.code != 0
+
+
+def test_error_location(names, devices, network, monitors, capsys):
+    """Test if error detection correctly prints out location of error
+    """
+    sc = Scanner(error_location, names)
+    parser = Parser(names, devices, network, monitors, sc)
+    parser.parse_network()
+    captured = capsys.readouterr()
+
+    line_number = "line 10"
+    try:
+        assert (line_number in captured.out)
+    except AttributeError:
+        assert (line_number in captured[0])

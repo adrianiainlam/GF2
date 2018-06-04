@@ -1,11 +1,27 @@
 \section{Specification of the logic description language}
   The logic description language is described by EBNF definition in
-  \lstlistingname~\ref{lst:ebnf}. It is noted that since a high
-  flexibility was incorporated into the grammar by specifying device
-  types as a capital string (instead of a list of string literals of
+  \lstlistingname~\ref{lst:ebnf}. Only single-line comments are allowed
+  in the circuit files. The `\texttt{\#}' symbol (ASCII 35) denotes the
+  start of a comment, and the new line character (ASCII 10) (or the end of
+  file) terminates it. This comment format was chosen since it is
+  the easiest to implement (comment formats with opening and closing
+  symbols may cause problems with nested comments, among others), and
+  it is also a widely employed scheme in many scripting languages
+  (e.g.~Bash, Python) and config files (e.g.~Postfix, Nginx).
+  By using \texttt{\#} instead of other symbols, there would also
+  be built-in support for starting Logic Simulator with a
+  shebang.
+
+  It is noted that since a high flexibility was incorporated into the
+  grammar by specifying device types as a string of capital letters
+  (instead of a list of string literals of
   recognized devices), there was no need to change the grammar
   (hence no need to change the parser) when additional devices were
-  added during the maintenance phase.
+  added during the maintenance phase. The rationale behind this
+  design decision was to allow a potential enhancement of the
+  project, such that users can define their own devices, similar
+  to how custom classes can be defined in e.g.~C++ and then used
+  like a type name.
 
   \lstinputlisting
       [caption={EBNF definition of the logic description language},

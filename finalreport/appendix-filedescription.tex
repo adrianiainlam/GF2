@@ -1,1 +1,64 @@
 \section{Description of files}
+The following files are included in the final project directory:
+
+\begin{itemize}
+\item The Logic Simulator program
+
+  The core files of the program, required for the bare minimum functionality.
+  See individual reports for details of the classes provided.
+  \begin{itemize}
+  \item \texttt{logsim.py}: The main program to be launched by the user.
+  \item \texttt{names.py}: Provides the \texttt{Names} class.
+  \item \texttt{scanner.py}: Provides the \texttt{Scanner} and
+    \texttt{Symbol} classes.
+  \item \texttt{parse.py}: Provides the \texttt{Parser} class.
+  \item \texttt{devices.py}: Provides the \texttt{Device} and
+    \texttt{Devices} classes.
+  \item \texttt{network.py}: Provides the \texttt{Network} class.
+  \item \texttt{monitors.py}: Provides the \texttt{Monitors} class.
+  \item \texttt{userint.py}: Provides the \texttt{UserInterface} class,
+    that is, the command-line interface.
+  \item \texttt{gui.py}: Provides the \texttt{Gui} class and the
+    \texttt{MyGLCanvas} class which is used in the GUI.
+  \end{itemize}
+\item Translation files
+
+  These are the files needed to provide translations of the GUI to
+  other languages. The structure of these files follows conventions
+  of GNU gettext.
+
+  \begin{itemize}
+  \item \texttt{locale/}: Directory containing all translation files.
+  \item \texttt{locale/LogicSimulator.pot}: Portable Object Template
+    file containing all the strings to be translated.
+  \item \texttt{locale/<locale>/LC\_MESSAGES/LangDomain.<po/mo>}:
+    Portable Object files and Machine Object files containing the
+    translated strings. \texttt{<locale>} is a locale in
+    ISO/IEC 15897 format. Currently supported locales are the \texttt{fr}
+    (unlocalized French), \texttt{de} (unlocalized German) and
+    \texttt{el} (unlocalized Greek) locales.
+  \end{itemize}
+
+\item Unit test files
+
+  The \texttt{test\_<module>.py} files are test files written using pytest.
+  \texttt{<module>} is the corresponding module described above,
+  with tests for the \texttt{Parser} class split between
+  \texttt{test\_parse.py} for syntactic checks and
+  \texttt{test\_semantic\_parse.py} for semantic checks.
+
+
+\item Example files
+
+  The \texttt{examples/} directory contains 4 examples of valid
+  circuit definition files (with the \texttt{.circuit} extension).
+  The circuits are also represented in circuit diagrams in PNG format
+  for reference. These files are used for testing, and the user
+  may use them as reference when writing their own circuit files.
+
+\item Invalid examples files
+
+  The \texttt{bad\_examples/} directory contains invalid circuit
+  definition files. These are used for both manual testing and
+  the unit tests mentioned above.
+\end{itemize}

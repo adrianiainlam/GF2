@@ -62,7 +62,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     """
 
-    def __init__(self, parent, devices, monitors):
+    def __init__(self, parent, devices, monitors, windowsize):
         """Initialise canvas properties and useful variables."""
         super().__init__(parent, -1,
                          attribList=[wxcanvas.WX_GL_RGBA,
@@ -73,6 +73,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.context = wxcanvas.GLContext(self)
         self.devices = devices
         self.monitors = monitors
+        self.windowsize = windowsize
 
         self.msg = ""
 
@@ -162,7 +163,11 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         the monitors dictionary, and use device_id and output_id
         in the labels.
         """
-        init_orig = {'x': 30, 'y': 420}
+        # The window would still be roughly 600 tall if a smaller height
+        # was requested, or roughly 800 tall (subject to monitor size
+        # differences) if a taller height was requested.
+        winsize_y = min(800,max(600, self.windowsize[1]))
+        init_orig = {'x': 30, 'y': winsize_y - 180}
         current_orig = init_orig.copy()
         x_step = 20
         y_sig_sep = -75
@@ -394,7 +399,8 @@ class Gui(wx.Frame):
         self.locale=wx.Locale(wx.LANGUAGE_DEFAULT)
         self.locale.AddCatalogLookupPathPrefix('locale')
         self.locale.AddCatalog("LangDomain")
-        super().__init__(parent=None, title=_(title), size=(800, 700))
+        windowsize = (800, 700)
+        super().__init__(parent=None, title=_(title), size=windowsize)
 
         # self.supLang = {
         #    u"de_DE": wx.LANGUAGE_GERMAN,
@@ -448,7 +454,7 @@ class Gui(wx.Frame):
 
         self.continue_button.Disable()              # Init of continue button
 
-        self.canvas = MyGLCanvas(self, devices, monitors)
+        self.canvas = MyGLCanvas(self, devices, monitors, windowsize)
 
         # Creating sizers
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)

@@ -6,8 +6,8 @@ from devices import Devices
 from network import Network
 from monitors import Monitors
 
-fulladderpath = "First report/examples/fulladder.circuit"
-ripplecounterpath = "First report/examples/ripplecounter.circuit"
+fulladderpath = "examples/fulladder.circuit"
+ripplecounterpath = "examples/ripplecounter.circuit"
 error_location = "bad_examples/error_location.circuit"
 
 # This is only a syntax check, we override semantic error-reporting

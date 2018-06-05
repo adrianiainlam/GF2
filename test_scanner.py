@@ -3,8 +3,8 @@ from scanner import Symbol, Scanner
 from names import Names
 
 
-fulladderpath = "First report/examples/fulladder.circuit"
-ripplecounterpath = "First report/examples/ripplecounter.circuit"
+fulladderpath = "examples/fulladder.circuit"
+ripplecounterpath = "examples/ripplecounter.circuit"
 
 
 @pytest.fixture

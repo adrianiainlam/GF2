@@ -16,7 +16,7 @@ from monitors import Monitors
 
 
 #original error-less file
-fulladderpath = "First report/examples/fulladder.circuit"
+fulladderpath = "examples/fulladder.circuit"
 
 #following files all have one semantic error and each error is different
 device_present = "bad_examples/device_present.circuit"

@@ -438,7 +438,7 @@ class Gui(wx.Frame):
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
         self.run_button = wx.Button(self, wx.ID_ANY, _("Run"))
         self.continue_button = wx.Button(self, wx.ID_ANY, _("Continue"))
-        self.restart_button = wx.Button(self, wx.ID_ANY, _("Restart"), size=wx.Size(110,10))
+        self.restart_button = wx.Button(self, wx.ID_ANY, _("Restart"), size=wx.Size(110,30))
         self.switches_text = wx.StaticText(self, wx.ID_ANY, _("Switches"))
         self.monitors_text = wx.StaticText(self, wx.ID_ANY,
                                            _("Monitored Outputs"))
@@ -535,7 +535,7 @@ class Gui(wx.Frame):
         switches_sizer.Add(row_sizer)
 
         # Starting retrieve button UI
-        self.retrieve_button = wx.Button(self, -1, _("Open definition file"), size=wx.Size(187,10))
+        self.retrieve_button = wx.Button(self, -1, _("Open definition file"), size=wx.Size(187,30))
         side_sizer.Add(self.retrieve_button, 1, wx.TOP| wx.BOTTOM, 5)
 
         if lang_selected in self.supLang:
@@ -553,7 +553,7 @@ class Gui(wx.Frame):
         # User message string and text control
         self.usrmsg_text = wx.StaticText(self, wx.ID_ANY, _("Execution information:"))
         self.usrmsg_text.SetForegroundColour("gray") # set text color
-        self.usrmsg=wx.TextCtrl(self, wx.ID_ANY,  _("Ready"), style=wx.HSCROLL|wx.TE_READONLY, size=wx.Size(185,55))
+        self.usrmsg=wx.TextCtrl(self, wx.ID_ANY,  _("Ready"), style=wx.TE_MULTILINE|wx.TE_READONLY, size=wx.Size(185,55))
         self.usrmsg.SetForegroundColour("gray") # set text color
         side_sizer.Add(self.usrmsg_text, 1, wx.TOP, 40)
         side_sizer.Add(self.usrmsg, 1, wx.TOP, 5)

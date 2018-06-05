@@ -162,7 +162,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         the monitors dictionary, and use device_id and output_id
         in the labels.
         """
-        init_orig = {'x': 30, 'y': 500}
+        init_orig = {'x': 30, 'y': 420}
         current_orig = init_orig.copy()
         x_step = 20
         y_sig_sep = -75

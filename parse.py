@@ -65,19 +65,40 @@ class Parser:
          self.NO_SEMI_COLON,
          self.INPUTS_NOT_CONNECTED] = self._names.unique_error_codes(16)
 
-        #BELOW are the stopping sybols which are used to indicate where parsing should continue upon finding a error
-        #"BETWEEN" implies that the error occured inbetween KEYWORDS
+        # BELOW are the stopping sybols which are used to indicate where
+        # parsing should continue upon finding a error.
+        # "BETWEEN" implies that the error occured inbetween KEYWORDS
         self.stopping_symbols = {
-            "DEVICE": [self._names.lookup(["END"])[0], self._names.lookup(["MONITOR"])[0], self._names.lookup(["DEVICE"])[0], self._names.lookup(["CONNECT"])[0], self._scanner.symbol_types.EOF],
-            "CONNECT": [self._names.lookup(["END"])[0], self._names.lookup(["MONITOR"])[0], self._scanner.symbol_types.EOF],
-            "MONITOR": [self._names.lookup(["END"])[0], self._scanner.symbol_types.EOF],
-             "END": [self._scanner.symbol_types.EOF],
-             "EOF": [self._scanner.symbol_types.EOF],
-             "BETWEEN": [self._names.lookup(["END"])[0], self._names.lookup(["MONITOR"])[0], self._names.lookup(["DEVICE"])[0], self._names.lookup(["CONNECT"])[0], self._scanner.symbol_types.SEMICOLON, self._scanner.symbol_types.EOF]}
+            "DEVICE": [
+                self._names.lookup(["END"])[0],
+                self._names.lookup(["MONITOR"])[0],
+                self._names.lookup(["DEVICE"])[0],
+                self._names.lookup(["CONNECT"])[0],
+                self._scanner.symbol_types.EOF
+            ],
+            "CONNECT": [
+                self._names.lookup(["END"])[0],
+                self._names.lookup(["MONITOR"])[0],
+                self._scanner.symbol_types.EOF
+            ],
+            "MONITOR": [
+                self._names.lookup(["END"])[0],
+                self._scanner.symbol_types.EOF
+            ],
+            "END": [self._scanner.symbol_types.EOF],
+            "EOF": [self._scanner.symbol_types.EOF],
+            "BETWEEN": [
+                self._names.lookup(["END"])[0],
+                self._names.lookup(["MONITOR"])[0],
+                self._names.lookup(["DEVICE"])[0],
+                self._names.lookup(["CONNECT"])[0],
+                self._scanner.symbol_types.SEMICOLON,
+                self._scanner.symbol_types.EOF
+            ]
+        }
 
     def parse_network(self):
         """Parse the circuit definition file."""
-
 
         ret = True  # return value, True = no errors, False = error
 
@@ -100,20 +121,19 @@ class Parser:
                 self.display_error(self.NO_EOF, self.stopping_symbols["END"])
                 return False
 
-
-        #final semantic check on network
+        # final semantic check on network
         network_ok = self._network.check_network()
-        #additional check on self._err_cnt so that message is only displayed if
-        #it is the only error
+        # additional check on self._err_cnt so that message is only
+        # displayed if it is the only error
         if not network_ok and self._err_cnt == 0:
-            self.display_error(self.INPUTS_NOT_CONNECTED, self.stopping_symbols["EOF"])
+            self.display_error(self.INPUTS_NOT_CONNECTED,
+                               self.stopping_symbols["EOF"])
         ret = network_ok and ret
-        if self._err_cnt>0:
+        if self._err_cnt > 0:
             if self._err_cnt == 1:
-                print("Total of:",self._err_cnt,"error found")
+                print("Total of:", self._err_cnt, "error found")
             else:
-                print("Total of:",self._err_cnt,"errors found")
-
+                print("Total of:", self._err_cnt, "errors found")
 
         return ret
 
@@ -136,7 +156,6 @@ class Parser:
             # error stating Keyword "DEVICE" not found at start
             self.display_error(self.NO_DEVICE, self.stopping_symbols["DEVICE"])
 
-
         self._current_sym = self._scanner.get_symbol()
 
         while self._current_sym.symtype not in [sym_t.KEYWORD, sym_t.EOF]:
@@ -146,9 +165,9 @@ class Parser:
                 for device_id, parameter in devices.items():
                     error_type = self._devices.make_device(
                         device_id, device_kind, parameter)
-                    #checking now for semantic failure
+                    # checking now for semantic failure
                     if error_type != self._devices.NO_ERROR:
-                        #continue parsing using "BETWEEN"'s stopping symbols'
+                        # continue parsing using "BETWEEN"'s stopping symbols
                         self.display_error(
                             error_type, self.stopping_symbols["BETWEEN"])
                         ret = False
@@ -175,13 +194,13 @@ class Parser:
         ret = ret and device_kind_status
         named_devices = {}
 
-        #Deal with first device
+        # Deal with first device
         [device_status, device] = self._parse_device()
         if device_status:
             named_devices.update(device)
         ret = device_status and ret
 
-        #iterate through all other devices
+        # iterate through all other devices
         while self._current_sym.symtype == COMMA:
             [device_status, next_device] = self._parse_device()
             if device_status:
@@ -238,7 +257,6 @@ class Parser:
         self._current_sym = self._scanner.get_symbol()
 
         if self._current_sym.symtype == OPENPAREN:
-            #device_has_param = True
             # get number and closeparen
             self._current_sym = self._scanner.get_symbol()
             if self._current_sym.symtype != NUMBER:
@@ -307,8 +325,6 @@ class Parser:
 
         while self._current_sym.symtype not in [KEYWORD, EOF]:
             [status, output, inputs] = self._parse_connection()
-            #print(list(map(self._names.get_name_string, list(output.keys()))))
-            #print(list(map(self._names.get_name_string, list(inputs.keys()))))
             ret = status and ret
             if ret and self._err_cnt == 0:
                 for output_device, output_port in output.items():
@@ -321,7 +337,6 @@ class Parser:
                             ret = False
             self._current_sym = self._scanner.get_symbol()
 
-        #print(self._names.get_name_string(self._network.get_connected_output(self._names.query("or1"), self._names.query("I2"))[0]))
         if self._current_sym.symtype == EOF:
             return False
         return ret
@@ -335,7 +350,8 @@ class Parser:
         """
         ret = True
 
-        [output_status, output_device_id, output_port_id] = self._parse_output()
+        [output_status, output_device_id, output_port_id] \
+            = self._parse_output()
         ret = ret and output_status
 
         CONNECTION_OP = self._scanner.symbol_types.CONNECTION_OP
@@ -347,7 +363,7 @@ class Parser:
             return [False, None, None]
 
         inputs = []
-        #getting input details
+        # getting input details
         [input_status, input_device_id, input_port_id] = self._parse_input()
         ret = input_status and ret
         if input_status:
@@ -358,7 +374,8 @@ class Parser:
 
         self._current_sym = self._scanner.get_symbol()
         while self._current_sym.symtype == COMMA:
-            [input_status, input_device_id, input_port_id] = self._parse_input()
+            [input_status, input_device_id, input_port_id] \
+                = self._parse_input()
             if input_status:
                 inputs.append((input_device_id, input_port_id))
             ret = input_status and ret
@@ -466,7 +483,7 @@ class Parser:
         [status, output_device_id, output_port_id] = self._parse_output()
         ret = status and ret
         if ret and self._err_cnt == 0:
-            #making ouput signal monitored in network
+            # making ouput signal monitored in network
             error_type = self._monitors.make_monitor(
                 output_device_id, output_port_id)
             if error_type != self._monitors.NO_ERROR:
@@ -486,7 +503,6 @@ class Parser:
                         error_type, self.stopping_symbols["BETWEEN"])
                     ret = False
 
-        # print(self._monitors.get_signal_names())
         if self._current_sym.symtype == EOF:
             return False
         return ret
@@ -504,8 +520,8 @@ class Parser:
         # display standard traceback
         self.boilerplate_error()
         # various syntactic errors
-        #keyword errors are treated more seriously and hence program exits upon
-        #detection
+        # keyword errors are treated more seriously and hence program exits
+        # upon detection
         if error_type == self.NO_DEVICE:
             print("KeywordError: expected keyword \"DEVICE\" at start of file")
             exit(1)
@@ -513,10 +529,12 @@ class Parser:
             print("KeywordError: expected keyword \"END\" at end of file")
             exit(1)
         elif error_type == self.NO_MONITOR:
-            print("KeywordError: expected keyword \"MONITOR\" before monitoring signals")
+            print("KeywordError: expected keyword \"MONITOR\" " +
+                  "before monitoring signals")
             exit(1)
         elif error_type == self.NO_CONNECT:
-            print("KeywordError: expected keyword \"CONNECT\" before connections")
+            print("KeywordError: expected keyword \"CONNECT\" before " +
+                  "connections")
             exit(1)
         elif error_type == self.NO_EOF:
             print("FileError: Expected definition file to end here")
@@ -556,7 +574,8 @@ class Parser:
 
         # Now make_connection errors
         elif error_type == self._network.DEVICE_ABSENT:
-            print("SemanticError: Input or output device has not been named in DEVICES")
+            print("SemanticError: Input or output device has not " +
+                  "been named in DEVICES")
         elif error_type == self._network.INPUT_CONNECTED:
             print("SemanticError: Input is already in a connection")
         elif error_type == self._network.INPUT_TO_INPUT:
@@ -574,8 +593,8 @@ class Parser:
         elif error_type == self._monitors.MONITOR_PRESENT:
             print("SemanticError: Signal is monitored more than once")
 
-        #following deals with error recovery which skips symbols until
-        #suitable stopping symbol is found
+        # following deals with error recovery which skips symbols until
+        # suitable stopping symbol is found
         while ((self._current_sym.symtype not in stopping_symbols)
                and (self._current_sym.symid not in stopping_symbols)):
             self._current_sym = self._scanner.get_symbol()

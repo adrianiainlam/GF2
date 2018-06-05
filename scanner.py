@@ -88,13 +88,6 @@ class Scanner:
             'NAME_CAPS NAME_CAPSNUM NAME_ALNUM'
         )
         self.keywords = ['DEVICE', 'CONNECT', 'MONITOR', 'END']
-
-        ## Why is this necessary? IDs will be looked up in get_symbol()
-        ## anyway, and these keywords are not expected to be used
-        ## frequently enough for this to bring performance enhancements.
-        # keyids = self.names.lookup(self.keywords)
-        # self.keywords_id = dict(zip(self.keywords, keyids))
-
         self.comment_start = '#'
         self.comment_end = '\n'
 

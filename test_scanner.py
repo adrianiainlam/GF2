@@ -39,7 +39,7 @@ def test_scanner_exit_on_file_without_read_access(names):
         fh.close()
         # revoke read access to file
         os.chmod("noreadaccess.file", 0000)
-    except:
+    except OSError:  # both open() and os.chmod() can raise OSError
         # there is already no access to file
         pass
 
@@ -99,8 +99,9 @@ def test_scanner_get_next_char(scanner_fulladder, scanner_ripplecounter):
             assert sc._current_char == fh.read(1)
             sc._get_next_char()
         assert fh.read(1) == ''
-            
+
         fh.close()
+
 
 def test_scanner_fulladder_ripplecounter(scanner_fulladder,
                                          scanner_ripplecounter):
@@ -123,7 +124,7 @@ def test_scanner_fulladder_ripplecounter(scanner_fulladder,
         import re
         # strip comments
         content = re.sub('#.*(\n|$)', '', content)
-        # strip by word boundary, i.e. spaces and punctuations
+        # split by word boundary, i.e. spaces and punctuations
         content_words = re.findall(r"[\w']+", content)
 
         keyword_cnt = len([x for x in content_words if x in
@@ -161,7 +162,7 @@ def test_scanner_fulladder_ripplecounter(scanner_fulladder,
 def test_scanner_eof(scanner_fulladder):
     """
     In this test, the behaviour after encountering EOF is tested.
-    Namely, the if get_symbol() is called after EOF for an arbitrary
+    Namely, if get_symbol() is called after EOF for an arbitrary
     number of times, the returned symbol should still be EOF, with
     no changes to line and column numbers.
     """
@@ -196,14 +197,14 @@ def test_scanner_get_number(scanner_emptyfile):
         nums += [randint(0, 2147483647)]
 
     sc.filelines = [' '.join(str(x) for x in nums) + '\n', 'abc']
-    sc._get_next_char() # init sc to the first char
+    sc._get_next_char()  # init sc to the first char
 
     for i in range(100):
         sc._skip_to_next_symbol()
         assert sc._get_number() == nums[i]
 
     with pytest.raises(ValueError):
-        sc._get_number()    
+        sc._get_number()
 
 
 def test_scanner_get_name(scanner_emptyfile):
@@ -212,7 +213,7 @@ def test_scanner_get_name(scanner_emptyfile):
     i.e. alphanumeric string starting with a letter.
     """
     sc = scanner_emptyfile
-    
+
     from random import randint, choice
     from string import ascii_letters, digits
 
@@ -223,7 +224,7 @@ def test_scanner_get_name(scanner_emptyfile):
         for j in range(namelen - 1):
             name += choice(ascii_letters + digits)
         names += [name]
-    
+
     sc.filelines = [' '.join(names) + '\n', '1bc']
     sc._get_next_char()
 
@@ -250,8 +251,8 @@ def test_scanner_get_name(scanner_emptyfile):
 def test_scanner_skip_to_next_symbol(scanner_emptyfile, filelines,
                                      linenum, colnum):
     """
-    Tests whether Scanner._skip_to_next_symbol() correctly
-    skips to the correct line and column.
+    Tests whether Scanner._skip_to_next_symbol() skips to the
+    correct line and column.
     """
     sc = scanner_emptyfile
     sc.filelines = filelines

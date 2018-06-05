@@ -390,9 +390,12 @@ class Gui(wx.Frame):
 
     def __init__(self, title, path, names, devices, network, monitors):
         """Initialise widgets and layout."""
-        super().__init__(parent=None, title=title, size=(800, 600))
-
         builtins.__dict__['_'] = wx.GetTranslation
+        self.locale=wx.Locale(wx.LANGUAGE_DEFAULT)
+        self.locale.AddCatalogLookupPathPrefix('locale')
+        self.locale.AddCatalog("LangDomain")
+        super().__init__(parent=None, title=_(title), size=(800, 700))
+
         # self.supLang = {
         #    u"de_DE": wx.LANGUAGE_GERMAN,
         #    u"el": wx.LANGUAGE_GREEK,
@@ -412,9 +415,7 @@ class Gui(wx.Frame):
         #     lang_selected=locale.getdefaultlocale()
         
         # self.locale = None
-        self.locale=wx.Locale(wx.LANGUAGE_DEFAULT)
-        self.locale.AddCatalogLookupPathPrefix('locale')
-        self.locale.AddCatalog("LangDomain")
+        
         # self.updateLanguage(lang_selected)
 
         # Creating global variables

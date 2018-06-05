@@ -393,27 +393,29 @@ class Gui(wx.Frame):
         super().__init__(parent=None, title=title, size=(800, 600))
 
         builtins.__dict__['_'] = wx.GetTranslation
-        self.supLang = {
-           u"de_DE": wx.LANGUAGE_GERMAN,
-           u"el": wx.LANGUAGE_GREEK,
-           u"en_GB":wx.LANGUAGE_ENGLISH,
-           u"fr_FR": wx.LANGUAGE_FRENCH
-        }
+        # self.supLang = {
+        #    u"de_DE": wx.LANGUAGE_GERMAN,
+        #    u"el": wx.LANGUAGE_GREEK,
+        #    u"en_GB":wx.LANGUAGE_ENGLISH,
+        #    u"fr_FR": wx.LANGUAGE_FRENCH
+        # }
 
-        supportedLang = []
-        for l in self.supLang:
-            # Not English as source code strings are in English
-            if l != u"en":
-                supportedLang.append(l)
+        # supportedLang = []
+        # for l in self.supLang:
+        #     # Not English as source code strings are in English
+        #     if l != u"en":
+        #         supportedLang.append(l)
 
-        if 'LANG' in os.environ:
-            lang_selected=os.environ['LANG']
-        else: 
-            lang_selected=locale.getdefaultlocale()
+        # if 'LANG' in os.environ:
+        #     lang_selected=os.environ['LANG']
+        # else: 
+        #     lang_selected=locale.getdefaultlocale()
         
-        self.locale = None
-        wx.Locale.AddCatalogLookupPathPrefix('locale')
-        self.updateLanguage(lang_selected)
+        # self.locale = None
+        self.locale=wx.Locale(wx.LANGUAGE_DEFAULT)
+        self.locale.AddCatalogLookupPathPrefix('locale')
+        self.locale.AddCatalog("LangDomain")
+        # self.updateLanguage(lang_selected)
 
         # Creating global variables
         self.monitors = monitors
@@ -538,17 +540,17 @@ class Gui(wx.Frame):
         self.retrieve_button = wx.Button(self, -1, _("Open definition file"), size=wx.Size(187,30))
         side_sizer.Add(self.retrieve_button, 1, wx.TOP| wx.BOTTOM, 5)
 
-        if lang_selected in self.supLang:
-            value=lang_selected
-        else:
-            value="en_GB"
+        # if lang_selected in self.supLang:
+        #     value=lang_selected
+        # else:
+        #     value="en_GB"
 
-        # Language string and dropdown menu
-        self.language_text = wx.StaticText(self, wx.ID_ANY, _("Language preference"))
-        side_sizer.Add(self.language_text,0, wx.TOP, 5)
-        self.languageCombobox = wx.ComboBox(self, choices=list(self.supLang.keys()), style=wx.CB_DROPDOWN, value=value)
-        side_sizer.Add(self.languageCombobox, 0, wx.ALL, 5)
-        self.languageCombobox.Bind(wx.EVT_COMBOBOX, self.on_language)
+        # # Language string and dropdown menu
+        # self.language_text = wx.StaticText(self, wx.ID_ANY, _("Language preference"))
+        # side_sizer.Add(self.language_text,0, wx.TOP, 5)
+        # self.languageCombobox = wx.ComboBox(self, choices=list(self.supLang.keys()), style=wx.CB_DROPDOWN, value=value)
+        # side_sizer.Add(self.languageCombobox, 0, wx.ALL, 5)
+        # self.languageCombobox.Bind(wx.EVT_COMBOBOX, self.on_language)
 
         # User message string and text control
         self.usrmsg_text = wx.StaticText(self, wx.ID_ANY, _("Execution information:"))
@@ -718,37 +720,37 @@ class Gui(wx.Frame):
 F. Freddi, A. I. Lam\n2018", _("About")+" Logsim", wx.ICON_INFORMATION | wx.OK)
 
 
-    def updateLanguage(self, lang):
-            """
-            Update the language to the requested one.
+    # def updateLanguage(self, lang):
+    #         """
+    #         Update the language to the requested one.
 
-            Make *sure* any existing locale is deleted before the new
-            one is created.  The old C++ object needs to be deleted
-            before the new one is created, and if we just assign a new
-            instance to the old Python variable, the old C++ locale will
-            not be destroyed soon enough, likely causing a crash.
+    #         Make *sure* any existing locale is deleted before the new
+    #         one is created.  The old C++ object needs to be deleted
+    #         before the new one is created, and if we just assign a new
+    #         instance to the old Python variable, the old C++ locale will
+    #         not be destroyed soon enough, likely causing a crash.
 
-            :param string `lang`: one of the supported language codes
+    #         :param string `lang`: one of the supported language codes
 
-            """
+    #         """
 
-            langDomain = "LangDomain"
-            # if an unsupported language is requested default to English
-            if lang in self.supLang:
-                selLang = self.supLang[lang]
-            else:
-                selLang = wx.LANGUAGE_ENGLISH
+    #         langDomain = "LangDomain"
+    #         # if an unsupported language is requested default to English
+    #         if lang in self.supLang:
+    #             selLang = self.supLang[lang]
+    #         else:
+    #             selLang = wx.LANGUAGE_ENGLISH
 
-            if self.locale:
-                assert sys.getrefcount(self.locale) <= 2
-                del self.locale
+    #         if self.locale:
+    #             assert sys.getrefcount(self.locale) <= 2
+    #             del self.locale
 
-            # create a locale object for this language
-            self.locale = wx.Locale(selLang)
-            if self.locale.IsOk():
-                self.locale.AddCatalog(langDomain)
-            else:
-                self.locale = None
+    #         # create a locale object for this language
+    #         self.locale = wx.Locale(selLang)
+    #         if self.locale.IsOk():
+    #             self.locale.AddCatalog(langDomain)
+    #         else:
+    #             self.locale = None
     
     def loadLanguageStrings(self):
         self.cycles_text.SetLabel(_("Nr of cycles"))

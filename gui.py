@@ -166,7 +166,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # The window would still be roughly 600 tall if a smaller height
         # was requested, or roughly 800 tall (subject to monitor size
         # differences) if a taller height was requested.
-        winsize_y = min(800,max(600, self.windowsize[1]))
+        winsize_y = min(800, max(600, self.windowsize[1]))
         init_orig = {'x': 30, 'y': winsize_y - 180}
         current_orig = init_orig.copy()
         x_step = 20
@@ -684,5 +684,6 @@ class Gui(wx.Frame):
         if Id == wx.ID_EXIT:
             self.Close(True)
         elif Id == wx.ID_ABOUT:
-            wx.MessageBox(_("Logic Simulator")+"\n"+_("Created by")+" S. Arulselvan, \
-F. Freddi, A. I. Lam\n2018", _("About")+" Logsim", wx.ICON_INFORMATION | wx.OK)
+            wx.MessageBox(_("Logic Simulator") + "\n" + _("Created by") +
+                          " S. Arulselvan, F. Freddi, A. I. Lam\n2018",
+                          _("About")+" Logsim", wx.ICON_INFORMATION | wx.OK)

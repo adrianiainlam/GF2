@@ -98,7 +98,7 @@ class Scanner:
         self.path = path
 
     def _get_next_char(self):
-        if len(self.filelines) == 0: # empty file
+        if len(self.filelines) == 0:  # empty file
             return ''
 
         current_line = self.filelines[self._current_line_num]

@@ -390,35 +390,16 @@ class Gui(wx.Frame):
 
     def __init__(self, title, path, names, devices, network, monitors):
         """Initialise widgets and layout."""
+
+        # Fetch language settings and set locale variables
         builtins.__dict__['_'] = wx.GetTranslation
-        self.locale=wx.Locale(wx.LANGUAGE_DEFAULT)
+        self.locale = wx.Locale(wx.LANGUAGE_DEFAULT)
         self.locale.AddCatalogLookupPathPrefix('locale')
         self.locale.AddCatalog("LangDomain")
+
         super().__init__(parent=None, title=_(title), size=(800, 700))
 
-        # self.supLang = {
-        #    u"de_DE": wx.LANGUAGE_GERMAN,
-        #    u"el": wx.LANGUAGE_GREEK,
-        #    u"en_GB":wx.LANGUAGE_ENGLISH,
-        #    u"fr_FR": wx.LANGUAGE_FRENCH
-        # }
-
-        # supportedLang = []
-        # for l in self.supLang:
-        #     # Not English as source code strings are in English
-        #     if l != u"en":
-        #         supportedLang.append(l)
-
-        # if 'LANG' in os.environ:
-        #     lang_selected=os.environ['LANG']
-        # else: 
-        #     lang_selected=locale.getdefaultlocale()
-        
-        # self.locale = None
-        
-        # self.updateLanguage(lang_selected)
-
-        # Creating global variables
+        # Create global variables
         self.monitors = monitors
         self.devices = devices
         self.names = names
@@ -441,7 +422,8 @@ class Gui(wx.Frame):
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
         self.run_button = wx.Button(self, wx.ID_ANY, _("Run"))
         self.continue_button = wx.Button(self, wx.ID_ANY, _("Continue"))
-        self.restart_button = wx.Button(self, wx.ID_ANY, _("Restart"), size=wx.Size(110,30))
+        self.restart_button = wx.Button(self, wx.ID_ANY, _("Restart"),
+                                        size=wx.Size(110, 30))
         self.switches_text = wx.StaticText(self, wx.ID_ANY, _("Switches"))
         self.monitors_text = wx.StaticText(self, wx.ID_ANY,
                                            _("Monitored Outputs"))
@@ -465,7 +447,7 @@ class Gui(wx.Frame):
         buttons_sizer.Add(self.run_button, 1, wx.ALL, 5)
         buttons_sizer.Add(self.continue_button, 1, wx.ALL, 5)
         side_sizer.Add(self.restart_button, 1, wx.ALL, 5)
-        side_sizer.Add(self.switches_text,1, wx.TOP, 5)
+        side_sizer.Add(self.switches_text, 1, wx.TOP, 5)
         side_sizer.Add(switches_sizer, 1, wx.TOP, 5)
         side_sizer.Add(self.monitors_text, 1, wx.TOP, 5)
 
@@ -501,7 +483,6 @@ class Gui(wx.Frame):
                                      self, choices=choices_list,
                                      size=size_checklistbox)
         side_sizer.Add(self.monitors_checklistbox, 1, wx.TOP, 5)
-        self.monitors_checklistbox.Enable()
 
         # Setting which switches are checked
         checked_strings = [x[0] for x in monitors_list if x[1]]
@@ -538,26 +519,18 @@ class Gui(wx.Frame):
         switches_sizer.Add(row_sizer)
 
         # Starting retrieve button UI
-        self.retrieve_button = wx.Button(self, -1, _("Open definition file"), size=wx.Size(187,30))
-        side_sizer.Add(self.retrieve_button, 1, wx.TOP| wx.BOTTOM, 5)
-
-        # if lang_selected in self.supLang:
-        #     value=lang_selected
-        # else:
-        #     value="en_GB"
-
-        # # Language string and dropdown menu
-        # self.language_text = wx.StaticText(self, wx.ID_ANY, _("Language preference"))
-        # side_sizer.Add(self.language_text,0, wx.TOP, 5)
-        # self.languageCombobox = wx.ComboBox(self, choices=list(self.supLang.keys()), style=wx.CB_DROPDOWN, value=value)
-        # side_sizer.Add(self.languageCombobox, 0, wx.ALL, 5)
-        # self.languageCombobox.Bind(wx.EVT_COMBOBOX, self.on_language)
+        self.retrieve_button = wx.Button(self, -1, _("Open definition file"),
+                                         size=wx.Size(200, 30))
+        side_sizer.Add(self.retrieve_button, 1, wx.TOP | wx.BOTTOM, 5)
 
         # User message string and text control
-        self.usrmsg_text = wx.StaticText(self, wx.ID_ANY, _("Execution information:"))
-        self.usrmsg_text.SetForegroundColour("gray") # set text color
-        self.usrmsg=wx.TextCtrl(self, wx.ID_ANY,  _("Ready"), style=wx.TE_MULTILINE|wx.TE_READONLY, size=wx.Size(185,55))
-        self.usrmsg.SetForegroundColour("gray") # set text color
+        self.usrmsg_text = wx.StaticText(self, wx.ID_ANY,
+                                         _("Execution information:"))
+        self.usrmsg_text.SetForegroundColour("gray")  # set text color
+        self.usrmsg = wx.TextCtrl(self, wx.ID_ANY,  _("Ready"),
+                                  style=wx.TE_MULTILINE | wx.TE_READONLY,
+                                  size=wx.Size(185, 55))
+        self.usrmsg.SetForegroundColour("gray")  # set text color
         side_sizer.Add(self.usrmsg_text, 1, wx.TOP, 40)
         side_sizer.Add(self.usrmsg, 1, wx.TOP, 5)
 
@@ -571,13 +544,6 @@ class Gui(wx.Frame):
 
         self.SetSizeHints(600, 600)
         self.SetSizer(main_sizer)
-
-    def on_language(self, event):
-        clicked = event.GetEventObject()
-        self.locale = None
-        wx.Locale.AddCatalogLookupPathPrefix('locale')
-        self.updateLanguage(event.GetString())
-        self.loadLanguageStrings()
 
     def on_checkbox(self, event):
         """Handle the event when the user checks or unchecks a checkbox.
@@ -657,7 +623,6 @@ class Gui(wx.Frame):
         if cycles is not None:
             # Handling gui interactions
             self.continue_button.Enable()
-            #self.monitors_checklistbox.Disable()
 
             # Reset output, print new running network and update nr cycles.
             self.monitors.reset_monitors()
@@ -668,24 +633,21 @@ class Gui(wx.Frame):
                 self.canvas.render()
                 self.usrmsg.SetValue(_("Ran for ")+str(cycles)+_(" cycles."))
 
-
     def on_continue(self, event):
         """Handle the event when the user clicks the continue button."""
-        # Handling gui interactions
-        #self.monitors_checklistbox.Disable()
-
         # Print continued network and update nr of cycles if successful.
         cycles = self.spin.GetValue()
         if cycles is not None:
             if self.run_network(cycles):
                 self.cycles_completed += cycles
                 self.canvas.render()
-                self.usrmsg.SetValue(_("Continued for ")+str(cycles)+_(" cycles.\nTotal: ")+str(self.cycles_completed))
+                self.usrmsg.SetValue(_("Continued for ") + str(cycles) +
+                                     _(" cycles.\nTotal: ") +
+                                     str(self.cycles_completed))
 
     def on_restart(self, event):
         """Handle the event when the user clicks the restart button."""
         # Handling gui interactions
-        self.monitors_checklistbox.Enable()
         self.continue_button.Disable()
 
         # Resetting monitors and parameters
@@ -719,47 +681,3 @@ class Gui(wx.Frame):
         elif Id == wx.ID_ABOUT:
             wx.MessageBox(_("Logic Simulator")+"\n"+_("Created by")+" S. Arulselvan, \
 F. Freddi, A. I. Lam\n2018", _("About")+" Logsim", wx.ICON_INFORMATION | wx.OK)
-
-
-    # def updateLanguage(self, lang):
-    #         """
-    #         Update the language to the requested one.
-
-    #         Make *sure* any existing locale is deleted before the new
-    #         one is created.  The old C++ object needs to be deleted
-    #         before the new one is created, and if we just assign a new
-    #         instance to the old Python variable, the old C++ locale will
-    #         not be destroyed soon enough, likely causing a crash.
-
-    #         :param string `lang`: one of the supported language codes
-
-    #         """
-
-    #         langDomain = "LangDomain"
-    #         # if an unsupported language is requested default to English
-    #         if lang in self.supLang:
-    #             selLang = self.supLang[lang]
-    #         else:
-    #             selLang = wx.LANGUAGE_ENGLISH
-
-    #         if self.locale:
-    #             assert sys.getrefcount(self.locale) <= 2
-    #             del self.locale
-
-    #         # create a locale object for this language
-    #         self.locale = wx.Locale(selLang)
-    #         if self.locale.IsOk():
-    #             self.locale.AddCatalog(langDomain)
-    #         else:
-    #             self.locale = None
-    
-    def loadLanguageStrings(self):
-        self.cycles_text.SetLabel(_("Nr of cycles"))
-        self.run_button.SetLabel(_("Run"))
-        self.continue_button.SetLabel(_("Continue"))
-        self.restart_button.SetLabel(_("Restart"))
-        self.switches_text.SetLabel(_("Switches"))
-        self.monitors_text.SetLabel(_("Monitored Outputs"))
-        self.retrieve_button.SetLabel(_("Open definition file"))
-        self.language_text.SetLabel(_("Language preference"))
-        self.usrmsg.SetValue(_("Language changed \nsuccessfully."))

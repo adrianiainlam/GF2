@@ -368,9 +368,6 @@ class Gui(wx.Frame):
     --------------
     on_menu(self, event): Event handler for the file menu.
 
-    on_spin(self, event): Event handler for when the user changes the spin
-                          control value.
-
     on_run(self, event): Event handler for when the user clicks the run button.
 
     on_continue(self, event): Event handler for when the user clicks the
@@ -489,7 +486,7 @@ class Gui(wx.Frame):
                                      size=size_checklistbox)
         side_sizer.Add(self.monitors_checklistbox, 1, wx.TOP, 5)
 
-        # Setting which switches are checked
+        # Setting which monitors are checked
         checked_strings = [x[0] for x in monitors_list if x[1]]
         self.monitors_checklistbox.SetCheckedStrings(checked_strings)
 
